@@ -2,22 +2,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMove : Grid
+public class PlayerMove : MonoBehaviour
 {
 
     public Transform playerPoint;
 
     void Start()
     {
-        //Vector2 worldTopLeft = Vector3.zero - (Vector3.right * gridSizeX / 2) + Vector3.forward * gridSizeY / 2;
+        ObjectManager o = new ObjectManager();
+        Vector2 gridWorldSize = o.getSize();
         playerPoint.position = new Vector2(-(gridWorldSize.x * 5) + 5, (gridWorldSize.y * 5) - 5);
+
+
+        //Vector2 worldTopLeft = Vector3.zero - (Vector3.right * gridSizeX / 2) + Vector3.forward * gridSizeY / 2;
+
     }
     void Update()
     {
         move();
     }  // 마우스로 이동
+    
+    void move() {
+        ObjectManager o = new ObjectManager();
+        Vector2 gridWorldSize = o.getSize();
 
-    void move() { 
         if (Input.GetMouseButtonDown(0))
         { // 클릭시 좌표 저장
           //Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);

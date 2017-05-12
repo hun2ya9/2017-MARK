@@ -5,15 +5,19 @@ using UnityEditor;
 
 
 public class Grid : MonoBehaviour {
+   
     protected int gridSizeX; // 실제 맵 x길이
     protected int gridSizeY; // 실제 맵 y길이
-    public Vector2 gridWorldSize; // 4 x 4 이런식으로
+    //public Vector2 gridWorldSize; // 4 x 4 이런식으로
     protected Node[,] grid;
     public Transform block;
     
 
     void CreateGrid()
     {
+        ObjectManager o = new ObjectManager();
+        Vector2 gridWorldSize = o.getSize();
+
         gridSizeX = Mathf.RoundToInt(gridWorldSize.x) * 10;
         gridSizeY = Mathf.RoundToInt(gridWorldSize.y) * 10;
         grid = new Node[Mathf.RoundToInt(gridWorldSize.x), Mathf.RoundToInt(gridWorldSize.y)];
@@ -64,6 +68,9 @@ public class Grid : MonoBehaviour {
     // public List<Node> path;
    void OnDrawGizmos()
     {
+        ObjectManager o = new ObjectManager();
+        Vector2 gridWorldSize = o.getSize();
+
         Gizmos.DrawWireCube(transform.position, new Vector3((gridWorldSize.x) * 10, (gridWorldSize.y) * 10, 1));
 
     }
