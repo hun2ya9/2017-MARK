@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ObjectManager : MonoBehaviour {
+public class ObjectManager {
 
     //난이도 조정에 따라 맵에 값을 넘겨줄 슈퍼 클래스
     //난이도 : 1,2,3값 일단 기본값1로 두고 코딩
 
-    public ObjectManager(){
+    public ObjectManager(){ // 생성자에서 값을 줘야됨
         c();
-        gridWorldSize = getSize();
-        
-
     }
         int level = 2;
     public static Vector2 gridWorldSize;
@@ -22,7 +19,7 @@ public class ObjectManager : MonoBehaviour {
         }
         //중급
         if (level == 2) {
-            gridWorldSize = new Vector2(6, 6);
+            gridWorldSize = new Vector2(7,7);
         }
         //고급
         if (level == 3) {

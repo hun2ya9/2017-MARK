@@ -17,7 +17,7 @@ public class Grid : MonoBehaviour {
     {
         ObjectManager o = new ObjectManager();
         Vector2 gridWorldSize = o.getSize();
-
+       
         gridSizeX = Mathf.RoundToInt(gridWorldSize.x) * 10;
         gridSizeY = Mathf.RoundToInt(gridWorldSize.y) * 10;
         grid = new Node[Mathf.RoundToInt(gridWorldSize.x), Mathf.RoundToInt(gridWorldSize.y)];
@@ -56,10 +56,15 @@ public class Grid : MonoBehaviour {
      */
 
     } // 맵을 배열로 저장
-    
+
     /* X x Y 이차원 배열
      나는 한칸을 1대신 10의 크기로 잡을것이고
      4 x 4 에서는 배열 0,0 ~ 3,3 까지해서 각 블록의 중심을 위치정보로 저장*/
+
+
+        
+
+
     void Start() {
         CreateGrid();
 
