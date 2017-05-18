@@ -10,13 +10,17 @@ public class PlayerMove : MonoBehaviour
         gg = new Vector3(playerPoint.position.x, playerPoint.position.y);
     }
     */
-
+    public LayerMask LightHouse;
+    bool Lpoint;
+    public GameObject Move;
     public GameObject MovePointer;
     // public Transform MovePoint; // 플레이어가 갈 수 있는 바닥
     public Transform playerPoint; // 플레이어 위치
     GameObject[] newMovePoint = new GameObject[9];
    // List<GameObject> a = new List<GameObject>();
     Vector3 MPpoisition; // 무브포인트의 위치
+    List<Vector3> l = new List<Vector3>(); //등대 위치가 담긴 리스트
+
     //Hole h;
     public LayerMask layerMask;
     void Start()
@@ -24,126 +28,139 @@ public class PlayerMove : MonoBehaviour
         ObjectManager o = new ObjectManager();
         Vector2 gridWorldSize = o.getSize();
         playerPoint.position = new Vector2(-(gridWorldSize.x * 5) + 5, (gridWorldSize.y * 5) - 5);
+        
+
+        // 등대의 위치 파악 
+      
         movePoint();
-        //Vector2 worldTopLeft = Vector3.zero - (Vector3.right * gridSizeX / 2) + Vector3.forward * gridSizeY / 2;
-        //h = GetComponent<Hole>();
-        //GameObject.FindWithTag("LightHouse").
     }
     void Update()
     {
         move();
     }  // 마우스로 이동 + 태그가 블록인곳만 갈 수 있고 감시탑에는 못가도록
-    
+
     void movePoint()
     {
         // 1. 맵 범위 안에서 2. 현재 플레이어 위치 중심 3. 8방위 조건만족하면 타일 생성하도록, 등대에는 생성되면 안됨!
         ObjectManager o = new ObjectManager();
         Vector2 gridWorldSize = o.getSize();
-         // 무브포인트의 위치 = 타일 생성하는 곳임
+        // 무브포인트의 위치 = 타일 생성하는 곳임
         int n = 10;
         for (int i = 1; i < 4; i++) // 123   369 - 123  = 210, 543, 876 하면 배열 0부터 8번까지 저장
         { // 8방위
             for (int j = 1; j < 4; j++) // 123
             {
+                int countL = 0;
                 if (i == 2 && j == 2)
-                { // 자기자신은 패스
-                    continue;
+                { // 자기자신의 위치에는 지나온길 표시
+                    newMovePoint[i * 3 - j] = Instantiate(Move); // 생성
+                    newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
                 }
 
                 MPpoisition = new Vector3(playerPoint.position.x + n * (i - 2), playerPoint.position.y + n * (j - 2)); // -1, 0, 1
                 Vector2 over = new Vector2(gridWorldSize.x * 5, gridWorldSize.y * 5); // 맵 사이즈 저장
-                // x가 크거나 y가 크면 맵을 벗어난거임      혹은  -값보다 작으면 벗어난것 :  4가지 경우가있음
 
-                
-               // int count = 0; 
-                /*
-                Hole h = new Hole();
-                Vector3[] hh = h.GetLP();
-                //h.GetComponent<GameObject>();
-              for (int k = 0; k < Mathf.RoundToInt(gridWorldSize.x / 2) + 1; k++)
-              {
-                    if (hh[k] != null)
+                for (int x = 0; x < gridWorldSize.x; x++)
+                {
+                    for (int y = 0; y < gridWorldSize.y; y++)
                     {
-                        if (MPpoisition == hh[k])
+                        Vector3 point = new Vector3(-(gridWorldSize.x * 5) + 5 + 10 * x, (gridWorldSize.y * 5) - 5 - 10 * y);
+                        //Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition); //ray.direction
+                        RaycastHit2D hit = Physics2D.Raycast(point, new Vector2(0,0), Mathf.Infinity);//(pos, Vector2.zero);
+                       
+                        if (hit == false)
                         {
-                            Debug.Log("무브포인트가 등대와 겹쳤다.");
-                            count++; // 겹쳤을땐 실행 안하도록 카운트값
+                            // 히트된 게 없을때 => 이걸 추가하는 이유는 맵 밖으로 안나가게 하려고
+                        }
+                        else if (hit.collider.gameObject.layer == LayerMask.NameToLayer("LightHouse")) // 무브포인터에서만 이동가능
+                        {
+                            Debug.Log(point);
+                            l.Add(point);
+
                         }
                     }
-                    else {
-                        Debug.Log("X");
-                    }
-                       
-              }*/
-                //if (count == 0) {
-                if (MPpoisition.x > 0 && MPpoisition.y > 0) // 1사분면
-                {
-                    if (MPpoisition.x > over.x || MPpoisition.y > over.y)
+                }
+                for (int z = 0; z < l.Count; z ++) {
+                    if (l[z] == MPpoisition)
                     {
-                        Debug.Log("벗어남1");
-                        continue; // 맵 벗어나면 만들지 않는다.
+                        countL++;
                     }
-                    else // 여기까지 왔으면 맵 안이라는 소리임
+                    else if (l[z] == null) {
+                        continue;
+
+                    }
+               }
+
+                    if (countL == 0)
+                {
+                    if (MPpoisition.x > 0 && MPpoisition.y > 0) // 1사분면
+                    {
+                        if (MPpoisition.x > over.x || MPpoisition.y > over.y)
+                        {
+                            Debug.Log("벗어남1");
+                            continue; // 맵 벗어나면 만들지 않는다.
+                        }
+                        else // 여기까지 왔으면 맵 안이라는 소리임
+                        {
+                            newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
+                            newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
+
+                        }
+                    }
+                    else if (MPpoisition.x > 0 && MPpoisition.y < 0) // 4사분면
+                    {
+                        if (MPpoisition.x > over.x || MPpoisition.y < -over.y)
+                        {
+                            Debug.Log("벗어남4");
+                            continue; // 맵 벗어나면 만들지 않는다.
+                        }
+                        else // 여기까지 왔으면 맵 안이라는 소리임
+                        {
+                            newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
+                            newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
+
+                        }
+
+                    }
+                    else if (MPpoisition.x < 0 && MPpoisition.y > 0) // 2사분면
+                    {
+                        if (MPpoisition.x < -over.x || MPpoisition.y > over.y)
+                        {
+                            Debug.Log("벗어남2");
+                            continue; // 맵 벗어나면 만들지 않는다.
+                        }
+                        else // 여기까지 왔으면 맵 안이라는 소리임
+                        {
+                            newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
+                            newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
+                        }
+
+                    }
+                    else if (MPpoisition.x < 0 && MPpoisition.y < 0) //3사분면
+                    {
+                        if (MPpoisition.x < -over.x || MPpoisition.y < -over.y)
+                        {
+                            Debug.Log("벗어남3");
+                            continue; // 맵 벗어나면 만들지 않는다.
+                        }
+                        else // 여기까지 왔으면 맵 안이라는 소리임
+                        {
+                            newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
+                            newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
+                        }
+
+                    }
+                    else
                     {
                         newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
                         newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-
+                        Debug.Log("이 경우는 왜 생기는지 아직 모르겠음....");
                     }
                 }
-                else if (MPpoisition.x > 0 && MPpoisition.y < 0) // 4사분면
-                {
-                    if (MPpoisition.x > over.x || MPpoisition.y < -over.y)
-                    {
-                        Debug.Log("벗어남4");
-                        continue; // 맵 벗어나면 만들지 않는다.
-                    }
-                    else // 여기까지 왔으면 맵 안이라는 소리임
-                    {
-                        newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                        newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-
-                    }
-
-                }
-                else if (MPpoisition.x < 0 && MPpoisition.y > 0) // 2사분면
-                {
-                    if (MPpoisition.x < -over.x || MPpoisition.y > over.y)
-                    {
-                        Debug.Log("벗어남2");
-                        continue; // 맵 벗어나면 만들지 않는다.
-                    }
-                    else // 여기까지 왔으면 맵 안이라는 소리임
-                    {
-                        newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                        newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-                    }
-
-                }
-                else if (MPpoisition.x < 0 && MPpoisition.y < 0) //3사분면
-                {
-                    if (MPpoisition.x < -over.x || MPpoisition.y < -over.y)
-                    {
-                        Debug.Log("벗어남3");
-                        continue; // 맵 벗어나면 만들지 않는다.
-                    }
-                    else // 여기까지 왔으면 맵 안이라는 소리임
-                    {
-                        newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                        newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-                    }
-
-                }
-                else 
-                {
-                    newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                    newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-                    Debug.Log("이 경우는 왜 생기는지 아직 모르겠음....");
-                }
-
-           // }
-        }
+            }
         }
     }
+    
 
     void move() // 최초 무브포인트 생성 => 클릭해서 좌표 저장 => 레이케스트 => 새 좌표로 이동 => 무브포인트 제거 => 바뀐 좌표에 대한 무브포인트 생성
     {
