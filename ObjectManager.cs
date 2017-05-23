@@ -3,27 +3,27 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class ObjectManager {
-
+   
     //난이도 조정에 따라 맵에 값을 넘겨줄 슈퍼 클래스
     //난이도 : 1,2,3값 일단 기본값1로 두고 코딩
 
     public ObjectManager(){ // 생성자에서 값을 줘야됨
         c();
     }
-        int level = 2;
+        int level = 1;
     public static Vector2 gridWorldSize;
     public void c() {
         //초급
         if (level == 1) {
-            gridWorldSize = new Vector2(4, 4);
+            gridWorldSize = new Vector2(7,7);
         }
         //중급
         if (level == 2) {
-            gridWorldSize = new Vector2(7,7);
+            gridWorldSize = new Vector2(8,8);
         }
         //고급
         if (level == 3) {
-            gridWorldSize = new Vector2(8, 8);
+            gridWorldSize = new Vector2(13,13);
         }
 
         // End 지점에 도착했을때 맵크기 +1하는것도 

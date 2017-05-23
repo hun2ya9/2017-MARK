@@ -113,7 +113,7 @@ void movePoint()
                     if (count == 1) {
                         break;
                     }
-                    if (H[z] == MPpoisition) // 무브 포인트와 구멍위치 일치
+                    if (H[z] == MPpoisition) // 무브 포인트와 구멍위치 일치 여기서 홀수일때 계속 오류뜨는데??????????????????????????????
                     {
                         view++;
                         count++;

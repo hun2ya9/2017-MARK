@@ -18,9 +18,25 @@ public class Hole: MonoBehaviour
     Vector2[] Lp; // 등대 배열
     Vector2[] ip; // 아이템 배열
     Vector2 housePosition;
-    
-    /* 등대 8방위는 구멍 보이게끔 하려는데
-     처음 아이디어 : 구멍 8방위 layer 변경해서 그 layer는 culling mask에 보이게 => 이게 잘안됨. Awake에 넣으면 전부다 변경되고 따로 하면 프리팹 원본만 변경되고*/
+
+
+    /* 등대 8방위 보이게끔
+  아이디어는 전체 오브젝트 깔고나서(혹시나 오류날까봐) 구멍 오브젝트 z축 +2 해서 맵상에서 안보이게함
+  각 등대 8방위에 + z축+2위치에 Hole tag 있으면 z축 -2하면 딱 보일거임*/
+    void ViewLight()
+    {
+        ObjectManager o = new ObjectManager();
+        Vector2 gridWorldSize = o.getSize();
+        for (int i = 0; i < Mathf.RoundToInt(gridWorldSize.x * gridWorldSize.x); i++) // 등대의 개수만큼 반복
+        {
+            if (Lp[i] == Vector2.zero) // 이거 홀수일때 중간에 생길수도있는데 어떻게 처리했는지 기억이 안남
+            {
+                continue;
+            }
+        }
+
+    }
+
 
 
     void HowManyHole() // 등대에 표시될 구멍의 개수
@@ -79,6 +95,27 @@ public class Hole: MonoBehaviour
     }
     void Start()
     {
+        ObjectManager o = new ObjectManager();
+        Vector2 gridWorldSize = o.getSize();
+        GameObject[] K = GameObject.FindGameObjectsWithTag("Hole");
+        Debug.Log(K[0].transform.position);
+        Debug.Log(K[1].transform.position);
+        Debug.Log(K[2].transform.position);
+        /*
+        if (K[Mathf.RoundToInt(gridWorldSize.x)] != null)
+        {
+            for (int i = 0; i < Mathf.RoundToInt(gridWorldSize.x + 1); i++)
+            {
+                // K[i].transform.position += Vector3.forward * 2;
+            }
+        }
+        else {
+            for (int i = 0; i < Mathf.RoundToInt(gridWorldSize.x); i++)
+            {
+                // K[i].transform.position += Vector3.forward * 2;
+            }
+        }
+        */
         g = GameObject.FindGameObjectWithTag("Canvas").GetComponent<Text>();
         HowManyHole();
     }
@@ -329,7 +366,6 @@ public class Hole: MonoBehaviour
 
         GameObject newHouse;
         int count = 0;
-        // hu = new Vector3[Mathf.RoundToInt(gridWorldSize.x * gridWorldSize.x)];
         Lp = new Vector2[Mathf.RoundToInt(gridWorldSize.x * gridWorldSize.x)]; // 여기에 감시탑의 실제 위치를 저장
         for (int i = 0; i < Mathf.RoundToInt(gridWorldSize.x * gridWorldSize.x); i++)
         {
@@ -433,11 +469,14 @@ public class Hole: MonoBehaviour
             // 구멍과 감시탑과 겹치는가 ?
             for (int j = 0; j < gridWorldSize.x+1; j++)
             {
-                if (itemPosition.x ==Lp[j].x && itemPosition.y == Lp[j].y) // 현재 임의의 아이템 위치와 감시탑이 겹치는지 확인
+                if (itemPosition.x == hp[j].x && itemPosition.y == hp[j].y) // 현재 임의의 아이템 위치와 구멍이 겹치는지 확인
                 {
                     except++; // 전부다 확인 하고 넘어가야됨
                 }
-                if (itemPosition.x == hp[j].x && itemPosition.y == hp[j].y) // 현재 임의의 아이템 위치와 감시탑이 겹치는지 확인
+            }
+            for (int j = 0; j < Mathf.RoundToInt(gridWorldSize.x * gridWorldSize.x); j++) {
+
+                if (itemPosition.x == Lp[j].x && itemPosition.y == Lp[j].y) // 현재 임의의 아이템 위치와 감시탑이 겹치는지 확인
                 {
                     except++; // 전부다 확인 하고 넘어가야됨
                 }
