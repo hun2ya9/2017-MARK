@@ -15,15 +15,15 @@ public class ObjectManager {
     public void c() {
         //초급
         if (level == 1) {
-            gridWorldSize = new Vector2(7,7);
+            gridWorldSize = new Vector2(6,6);
         }
         //중급
         if (level == 2) {
-            gridWorldSize = new Vector2(8,8);
+            gridWorldSize = new Vector2(7,7);
         }
         //고급
         if (level == 3) {
-            gridWorldSize = new Vector2(13,13);
+            gridWorldSize = new Vector2(8,8);
         }
 
         // End 지점에 도착했을때 맵크기 +1하는것도 

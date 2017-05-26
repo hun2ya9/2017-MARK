@@ -4,25 +4,18 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerMove : MonoBehaviour
-{/*
-    Vector3 gg;
-    public PlayerMove() {
-      // gg = playerPoint.position;
-        gg = new Vector3(playerPoint.position.x, playerPoint.position.y);
-    }
-    */
+{
     public LayerMask LightHouse;
     bool Lpoint;
-    public GameObject Move;
+    public GameObject Trace; // 지나온 길
     public GameObject MovePointer;
-    // public Transform MovePoint; // 플레이어가 갈 수 있는 바닥
     public Transform playerPoint; // 플레이어 위치
     GameObject[] newMovePoint = new GameObject[9];
     Vector3 MPpoisition; // 무브포인트의 위치
     List<Vector3> LH = new List<Vector3>(); //등대 위치가 담긴 리스트
-    List<Vector3> H = new List<Vector3>(); //구멍 위치가 담긴 리스트
+   List<Vector3> H = new List<Vector3>(); //구멍 위치가 담긴 리스트
     List<Vector3> I = new List<Vector3>(); //아이템 위치가 담긴 리스트
-  
+    
     Text PlayerRoundHoles;
     public LayerMask layerMask;
     void Start()
@@ -31,36 +24,37 @@ public class PlayerMove : MonoBehaviour
         ObjectManager o = new ObjectManager();
         Vector2 gridWorldSize = o.getSize();
         playerPoint.position = new Vector2(-(gridWorldSize.x * 5) + 5, (gridWorldSize.y * 5) - 5);
-
+        Ray();
         movePoint();
+        //Coroutine CoroutineMove = 
+        StartCoroutine(CoMove()); //코루틴 시작
+
     }
     void Update()
     {
-        
-        move(); // 플레이어의 위치를 계속 update 해줘야 하기 때문에 여기 들어감
+       // move(); // 플레이어의 위치를 계속 update 해줘야 하기 때문에 여기 들어감
     }
-    
-       
 
-
-
-// 마우스로 이동 + 태그가 블록인곳만 갈 수 있고 감시탑에는 못가도록
-void movePoint()
+    public IEnumerator CoMove() //move 메소드를 update대신 코루틴을 사용해서 무한 반복시킨다.
     {
-        // 1. 맵 범위 안에서 2. 현재 플레이어 위치 중심 3. 8방위 조건만족하면 타일 생성하도록, 등대에는 생성되면 안됨!
+        while (this.enabled == true) // 아이템 사용시에는 무브포인트가 잠시 비활성화 되야해서 이렇게했음
+        {
+            move();
+            yield return null;
+        }
+    }
+
+
+    public void Ray()
+    { // 레이케스트를 통해서 등대 위치 받아와서 리스트 추가하는 작업임
         ObjectManager o = new ObjectManager();
         Vector2 gridWorldSize = o.getSize();
-        // 무브포인트의 위치 = 타일 생성하는 곳임
-        int n = 10;
-
-
-
-        for (int x = 0; x < gridWorldSize.x; x++) // 레이케스트를 통해서 등대 위치 받아와서 리스트 추가하는 작업임
+        for (int x = 0; x < gridWorldSize.x; x++)
         {
             for (int y = 0; y < gridWorldSize.y; y++)
             {
-                Vector3 point = new Vector3(-(gridWorldSize.x * 5) + 5 + 10 * x, (gridWorldSize.y * 5) - 5 - 10 * y);
-                RaycastHit2D hit = Physics2D.Raycast(point, new Vector2(0,0), Mathf.Infinity);//(pos, Vector2.zero);
+                Vector2 point = new Vector3(-(gridWorldSize.x * 5) + 5 + 10 * x, (gridWorldSize.y * 5) - 5 - 10 * y);
+                RaycastHit2D hit = Physics2D.Raycast(point, new Vector2(0, 0), Mathf.Infinity);//(pos, Vector2.zero);
 
                 if (hit == false)
                 {
@@ -69,20 +63,31 @@ void movePoint()
                 else if (hit.collider.gameObject.layer == LayerMask.NameToLayer("LightHouse")) // 무브포인터에서만 이동가능
                 { // collider 넣었기 때문에 등대 프리팹에도 Box 충돌체 추가해야지만 이게 작동한다.
                     LH.Add(point);
+
                 }
                 else if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Hole"))
                 {
                     H.Add(point);
+
                 }
-                else if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Item")) {
+                else if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Item"))
+                {
 
                     I.Add(point);
                 }
-
-
             }
         }
+    }
+    
+        void movePoint()
+    {
+        // 1. 맵 범위 안에서 2. 현재 플레이어 위치 중심 3. 8방위 조건만족하면 타일 생성하도록, 등대에는 생성되면 안됨!
+        ObjectManager o = new ObjectManager();
+        Vector2 gridWorldSize = o.getSize();
+        // 무브포인트의 위치 = 타일 생성하는 곳임
+        int n = 10;
 
+     
         int view = 0; // 플레이어 중심 8방위 구멍 개수
         for (int i = 1; i < 4; i++) // 123   369 - 123  = 210, 543, 876 하면 배열 0부터 8번까지 저장
         { // 8방위
@@ -91,12 +96,12 @@ void movePoint()
                 int countL = 0;
                
 
-                MPpoisition = new Vector3(playerPoint.position.x + n * (i - 2), playerPoint.position.y + n * (j - 2)); // -1, 0, 1
+                MPpoisition = new Vector2(playerPoint.position.x + n * (i - 2), playerPoint.position.y + n * (j - 2)); // -1, 0, 1
                 Vector2 over = new Vector2(gridWorldSize.x * 5, gridWorldSize.y * 5); // 맵 사이즈 저장
 
                 if (i == 2 && j == 2)
                 { // 자기자신의 위치에는 지나온길 표시
-                    newMovePoint[i * 3 - j] = Instantiate(Move); // 생성
+                    newMovePoint[i * 3 - j] = Instantiate(Trace); // 생성
                     newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
                 }
 
@@ -107,13 +112,15 @@ void movePoint()
                         countL++;
                     }
                }
+
                 int count = 0; // 자꾸 중복 반복되서 그냥 1일때 멈추게끔하게
-                for (int z = 0; z < Mathf.RoundToInt(gridWorldSize.x); z++) // 구멍 수만큼 반복하면 됨
+
+                for (int z = 0; z < H.Count; z++) // 구멍 수만큼 반복하면 됨
                 {
                     if (count == 1) {
                         break;
                     }
-                    if (H[z] == MPpoisition) // 무브 포인트와 구멍위치 일치 여기서 홀수일때 계속 오류뜨는데??????????????????????????????
+                    if (H[z].x == MPpoisition.x && H[z].y == MPpoisition.y) // 무브 포인트와 구멍위치 일치
                     {
                         view++;
                         count++;
@@ -260,14 +267,13 @@ void movePoint()
         { // 클릭시 좌표 저장
           /*position을 화면 공간에서 월드 공간으로 변경시킵니다.
   */
-                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition); //ray.direction-
-            RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity, layerMask );//(pos, Vector2.zero);
-                                                                                                        //if (hit.collider.tag == "MovePoint")
+                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition); //메인 카메라에서 마우스 위치(클릭한곳)로 광선발사 
+            RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity, layerMask );
             if (hit == false) {
                 // 히트된 게 없을때 => 이걸 추가하는 이유는 맵 밖으로 안나가게 하려고
             } else if (hit.collider.gameObject.layer == LayerMask.NameToLayer("MovePoint")) // 무브포인터에서만 이동가능
             {
-                Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);// 마우스 찍은 위치 좌표로 저장
                 /*범위 안에 들어왔을때 해당 칸의 중심으로 이동하게끔
                 오른쪽 : -15 < x < -5 , -5 < y < 5 v
                 왼쪽   :  5 < x < 15 , -5 < y < 5
@@ -314,21 +320,15 @@ void movePoint()
                 { //좌하
                     playerPoint.position = new Vector2(playerPoint.position.x - 10, playerPoint.position.y - 10);
                 }
-                else
+
+                for (int i = 0; i < 9; i++)
                 {
+                    DestroyObject(newMovePoint[i]); // 기존 위치 제거
                 }
-            }
-            else {
-                Debug.Log("다른곳을 눌렀따.");
-            }
 
-            for (int i = 0; i < 9; i++)
-            {
-                DestroyObject(newMovePoint[i]); // 기존 위치 제거
+                movePoint(); // 새 위치 할당
             }
-
-            movePoint(); // 새 위치 할당
-            }
-
+        }
+        
     }
 }
