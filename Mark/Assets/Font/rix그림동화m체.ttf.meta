@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: 8e517f27c3abca74eb2d9d939305c99b
+timeCreated: 1495873073
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: RixGrimm M
+  fontNames:
+  - RixGrimm M
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

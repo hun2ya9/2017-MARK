@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: ee3d380ab0f1f8640bbde4d20a95058f
+timeCreated: 1495872572
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: 1HoonSomsatang
+  fontNames:
+  - 1HoonSomsatang
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

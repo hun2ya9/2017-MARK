@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: 4e44f18387298c3489bb83ab9c80a3f2
+timeCreated: 1495872882
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: KoreanGMGUKR
+  fontNames:
+  - KoreanGMGUKR
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

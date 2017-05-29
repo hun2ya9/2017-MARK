@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1f235035c06e953489aa82f9e46a4873
+timeCreated: 1495831384
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - hole: {instanceID: 0}
+  - house: {fileID: 1908998881534136, guid: 61c84e8f71fa2a949bb9925a72fc2cf1, type: 2}
+  - object_manager: {instanceID: 0}
+  executionOrder: 100
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
