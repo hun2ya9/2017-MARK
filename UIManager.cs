@@ -5,7 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
-
+    public static int level;
+    public static int stage = 1; //첫 스테이지는 1번
     public void Menu()
     {
         SceneManager.LoadScene("Opening UI");
@@ -39,16 +40,50 @@ public class UIManager : MonoBehaviour
 
     public void Easy()
     {
-        SceneManager.LoadScene("Easy_Stage1");
+        level = 1;
+        SceneManager.LoadScene("MAP1");
+
+      
     }
+    
     public void Normal()
     {
-        SceneManager.LoadScene("Normal_Stage1");
+        level = 2;
+        SceneManager.LoadScene("MAP1");
     }
     public void Hard()
     {
-        SceneManager.LoadScene("Hard_Stage1");
+        level = 3;
+        SceneManager.LoadScene("MAP1");
     }
+    public void NextStage()
+    {
+        if (UIManager.level == 1)
+        {
+            level = 1;
+        }
+        else if (UIManager.level == 2)
+        {
+            level = 2;
+        }
+        else
+        {
+            level = 3;
+        }
+
+        stage++; // 다음단계 넘어갈땐 stage값 증가
+
+        if (UIManager.stage == 5)
+        {
+            SceneManager.LoadScene("Total Result UI");
+        }
+        else
+        {
+            SceneManager.LoadScene("MAP1");
+        }
+    }
+
+
     public void GameOver()
     {
         SceneManager.LoadScene("Game Over UI'");
