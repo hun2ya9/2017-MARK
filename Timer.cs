@@ -11,6 +11,7 @@ public class Timer : MonoBehaviour
     {
         t = GetComponent<Text>();
         time = 0;
+
     }
 
     // Update is called once per frame
@@ -24,12 +25,14 @@ public class Timer : MonoBehaviour
 
         if (tt < 60)
         {
-            t.text = "00분" + second + "초";
+            t.text = "Time : 00분" + second + "초";
         }
         else if (tt >= 60)
         {
-            t.text = minute + "분" + ResetSecond + "초";
+            t.text = "Time :" + minute + "분" + ResetSecond + "초";
         }
     }
+
+   
      
 }

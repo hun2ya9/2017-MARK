@@ -1,22 +1,18 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Node : MonoBehaviour
+public class Node
 {
-        public Vector3 worldPosition; // 현재 노드의 좌표
-        public int gridX, gridY; // X, Y 좌표
-        public Node parent;
+    public Vector3 worldPosition; // 현재 노드의 좌표
+    public bool is_trap = false;
+    public bool is_lighthouse = false;
+    // public Node parent
 
 
-        public Node(Vector3 worldPosition, int gridX, int gridY)
-        {
-            this.worldPosition = worldPosition;
-            this.gridX = gridX;
-            this.gridY = gridY;
-        }
-
-    
-
+    public Node(Vector3 worldPosition)
+    {
+        this.worldPosition = worldPosition;
+    }
 
     // Use this for initialization
     void Start()
