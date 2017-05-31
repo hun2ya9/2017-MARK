@@ -8,7 +8,7 @@ public class Player : MonoBehaviour
 /* 플레이어가 구멍과 아이템이랑 만났을때 처리 및 라이프 관리*/
 {
     public int maxLife = 3;
-    public static int life = 3; // 라이프 3개
+    public int life = 3; // 라이프 3개
     bool gameOver = false;
     List<Vector3> h = new List<Vector3>(); //구멍 위치가 담긴 리스트
 
@@ -27,19 +27,25 @@ public class Player : MonoBehaviour
 
     public GameObject object_manager;
     ObjectManager_ script;
-
+    GameObject lifeObj1;
+    GameObject lifeObj2;
+    GameObject lifeObj3;
     // Use this for initialization
     void Start()
     {
         life = maxLife;
         script = object_manager.GetComponent<ObjectManager_>();
         
-        PlayerRoundHoles = GameObject.FindGameObjectWithTag("PlayerRoundHoles").GetComponent<Text>();
+        PlayerRoundHoles = GameObject.FindGameObjectWithTag("PlayerRoundHoles").GetComponent<Text>(); // 우측 상단 플레이어 중심 구멍수 택스트
 
-        playerPoint.position = new Vector2(-(script.gridWorldSize.x * 5) + 5, (script.gridWorldSize.y * 5) - 5);
-        movePoint();
-        StartCoroutine(CoMove()); //코루틴 시작
+        playerPoint.position = new Vector2(-(script.gridWorldSize.x * 5) + 5, (script.gridWorldSize.y * 5) - 5); // 플레이어 시작 위치 지정
+        movePoint(); // 플레이어 시작 위치에 타일 까는작업
+        StartCoroutine(CoMove()); //코루틴 시작 = update와 거의 동일하다 보면됨(마우스 클릭 위치 실시간으로 받게됨)
         f = g.GetComponent<Hole>();
+        lifeObj1 = GameObject.Find("Life1"); // life 오브젝트
+        lifeObj2 = GameObject.Find("Life2");
+        lifeObj3 = GameObject.Find("Life3");
+
 
 
     }
@@ -85,6 +91,18 @@ public class Player : MonoBehaviour
         if (Player.gameObject.tag == "Hole")
         {
             life -= 1; // 라이프 까짐
+            //라이프 오브젝트 비활성화
+            if (life == 2)
+            {
+                lifeObj3.SetActive(false);
+            }
+            else if (life == 1) {
+                lifeObj2.SetActive(false);
+            }
+            else if (life == 0)
+            {
+                lifeObj1.SetActive(false);
+            }
 
             for (int i = 0; i < mapsize; i++) // 마우스 클릭한 블록에 구멍이 있을때 구멍 위치 -1로 해서 보이게함
             {
@@ -156,138 +174,24 @@ public class Player : MonoBehaviour
                     }
                 }
 
-                if (countL == 0)
+                if (countL == 0) // 간단하게 줄여보았음 굳이 1,2,3,4사분면 안 나눠도 이렇게 해도 ㄱㅊ
                 {
-                    if (MPpoisition.x > 0 && MPpoisition.y > 0) // 1사분면
+                    if (MPpoisition.x > over.x || MPpoisition.x < -over.x || MPpoisition.y > over.y || MPpoisition.y < -over.y)
                     {
-                        if (MPpoisition.x > over.x || MPpoisition.y > over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                            newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-
-                        }
+                        continue; // 맵 벗어나면 만들지 않는다.
                     }
-                    else if (MPpoisition.x > 0 && MPpoisition.y < 0) // 4사분면
-                    {
-                        if (MPpoisition.x > over.x || MPpoisition.y < -over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                            newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-
-                        }
-
-                    }
-                    else if (MPpoisition.x < 0 && MPpoisition.y > 0) // 2사분면
-                    {
-                        if (MPpoisition.x < -over.x || MPpoisition.y > over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                            newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-                        }
-
-                    }
-                    else if (MPpoisition.x < 0 && MPpoisition.y < 0) //3사분면
-                    {
-                        if (MPpoisition.x < -over.x || MPpoisition.y < -over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                            newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-                        }
-                        // 홀수맵에서는 좌표가 0일 수가 있음;; x,y가 하나이상 0인 경우임
-                    }
-                    else if (MPpoisition.x == 0)
-                    { // x가 0일 경우
-
-                        if (MPpoisition.y > 0) // 위쪽
-                        {
-                            if (MPpoisition.y > over.y)
-                            {
-                                continue; // 맵 벗어나면 만들지 않는다.
-                            }
-                            else // 여기까지 왔으면 맵 안이라는 소리임
-                            {
-                                newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                                newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-                            }
-                        }
-                        else if (MPpoisition.y < 0) // 아래쪽
-                        {
-                            if (MPpoisition.y < -over.y)
-                            {
-                                continue; // 맵 벗어나면 만들지 않는다.
-                            }
-                            else // 여기까지 왔으면 맵 안이라는 소리임
-                            {
-                                newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                                newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-                            }
-                        }
-                        else
-                        { // 딱 중심일때
-                            newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                            newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-                        }
-
-                    }
-                    else if (MPpoisition.y == 0)
-                    { // y가 0일 경우
-                        if (MPpoisition.x > 0) // 오른쪽
-                        {
-                            if (MPpoisition.x > over.x)
-                            {
-                                continue; // 맵 벗어나면 만들지 않는다.
-                            }
-                            else // 여기까지 왔으면 맵 안이라는 소리임
-                            {
-                                newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                                newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-                            }
-                        }
-                        else if (MPpoisition.x < 0) // 아래쪽
-                        {
-                            if (MPpoisition.x < -over.x)
-                            {
-                                continue; // 맵 벗어나면 만들지 않는다.
-                            }
-                            else // 여기까지 왔으면 맵 안이라는 소리임
-                            {
-                                newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                                newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-                            }
-                        }
-                        else
-                        { // 딱 중심일때
-                            newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
-                            newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-                        }
-                    }
-                    else
+                    else // 여기까지 왔으면 맵 안이라는 소리임
                     {
                         newMovePoint[i * 3 - j] = Instantiate(MovePointer); // 생성
                         newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
                     }
                 }
+
+                // 플레이어 중심 8방위에 구멍 수 출력
+                PlayerRoundHoles.text = view + "";
+
             }
         }
-        /* 플레이어 중심 8방위에 구멍 수 출력*/
-        PlayerRoundHoles.text = view + "";
-
     }
 
 

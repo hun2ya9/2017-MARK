@@ -9,15 +9,17 @@ using System.Collections;
 */
 public class Item : MonoBehaviour
 {
-    string[] items = new string[4];
+    string[] items = new string[5];
     string[] Inventory = new string[3];
     public LayerMask layerMask1; // OneBlockDetector
     public LayerMask layerMask2; // Knight
 
-    static bool OBD = false;
-    static bool EBD = false;
-    static bool K = false;
+    // 스테이지 넘어가도 아이템 유지 되도록 해보자.
+    static bool OBD = UIManager.OBD;
+    static bool EBD = UIManager.EBD;
+    static bool K = UIManager.K;
     static bool R = false;
+    static bool G = false;
 
     public Transform item; // 아이템 위치
     public Transform playerPoint; // 플레이어 위치
@@ -37,21 +39,53 @@ public class Item : MonoBehaviour
     public GameObject g;
     Hole h;
 
-    public static int useItem = 0; // 아이템 사용 횟수
+    public static int usedItem; // 아이템 사용 횟수
 
 
      Button b1, b2, b3; // 버튼
+    ColorBlock chColor1;
+    ColorBlock chColor2;
+    ColorBlock chColor3;
 
+    void StartButtonColor()
+    {  // 스테이지 바뀔때 인벤토리에 아이템 있으면 해당 버튼 색깔 바꾼 상태로 시작
+       // 실제 인벤토리 배열에도 추가 해줘야됨
+        b1 = GameObject.Find("Item_Button1").GetComponent<Button>();
+        b2 = GameObject.Find("Item_Button2").GetComponent<Button>();
+        b3 = GameObject.Find("Item_Button3").GetComponent<Button>();
+        chColor1 = b1.colors;
+        chColor2 = b2.colors;
+        chColor3 = b3.colors;
+        chColor1.normalColor = Color.red;
+        chColor2.normalColor = Color.red;
+        chColor3.normalColor = Color.red;
 
+        if (UIManager.OBD == true)
+        {
+            b1.GetComponent<Button>().colors = chColor1; // 이걸 다시 집어넣어줘야 색이 바뀜
+            Inventory[0] = "OneBlockDetector"; Inven();
+        }
+        if (UIManager.EBD == true)
+        {
+            b2.GetComponent<Button>().colors = chColor2; // 이걸 다시 집어넣어줘야 색이 바뀜
+            Inventory[1] = "EightBlockDetector"; Inven();
+
+        }
+        if (UIManager.K == true)
+        {
+            b3.GetComponent<Button>().colors = chColor3; // 이걸 다시 집어넣어줘야 색이 바뀜
+            Inventory[2] = "Knight"; Inven();
+
+        }
+        
+    }
     void Start()
     {
-        b1 = GameObject.Find("Item_Button1").GetComponent<Button>();
-        b2 = GameObject.FindGameObjectWithTag("ItemMenu").GetComponent<Button>();
-        b3 = GameObject.Find("Item_Button3").GetComponent<Button>();
-
+        StartButtonColor(); // 스테이지 바뀔때 아이템 들고 있는거 있으면 버튼 색깔 바꾼 상태로 시작
 
         test = GameObject.Find("Player").GetComponent<Player>();
         MakeItem();
+        usedItem = 0; // 첫 실행때 초기화
     }
 
     void Update()
@@ -113,6 +147,7 @@ public class Item : MonoBehaviour
         items[1] = "EightBlockDetector"; // 8방위 탐지기 
         items[2] = "Knight"; // 나이트
         items[3] = "RandomTeleport"; // 랜덤으로 아무대나 보냄
+        items[4] = "GGwang"; // 꽝!
     }
 
     void OnTriggerEnter2D(Collider2D coll) // player가 item에 부딪힐때
@@ -121,31 +156,46 @@ public class Item : MonoBehaviour
         int random;
         if (coll.gameObject.tag == "Item") // 부딪힌게 아이템 일때
         {
-            random = Random.Range(0, 4); // 아이템 랜덤으로 먹어짐
 
+            /*인벤토리 꽉 찬 경우*/
+            // if(Inventory[0] != null && Inventory[1] != null && Inventory[2] != null)
+
+            random = Random.Range(0, 5); // 아이템 랜덤으로 먹어짐
+            
+            /* 인벤토리 3칸 , 아이템은 4~5개로 아이템이 더 많음
+             랜덤으로 먹은 아이템을 인벤토리 하나씩 비교해서
+             있으면 다시 값 할당, 없으면
+             비어있는 리스트에 추가를 하는데
+             만약 비어있는 리스트 없을 경우!!! = 그냥 추가 안하면 그만임
+             
+             근데 지금 오류로 한번에 두번 아이템 먹는 경우 발생함~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
             do
             {
                 for (int j = 0; j < 3; j++) // 랜덤으로 먹은 아이템이
                 {
                     if (items[random] == Inventory[j]) // 인벤토리 하나당 먹은 아이템 비교해서
-                    { // 인밴토리에 해당 아이템이 있는가?
+                    { // 인밴토리에 해당 아이템이 있는가? 아이템 수가 인벤토리 수 보다 커서 무한 반복이 나올 수 없음
                         exist = true; // 있으면 더 검사할 필요도 없이 탈출
                         break;
                     } // else 값은 false 그대로
                 }
-
                 if (exist == true) // 아이템 존재할시
                 {
-                    random = Random.Range(0, 4); // 다시 할당
-                    exist = false;
+                    for (int j = 0; j < 3; j++)
+                    { random = Random.Range(0, 4); // 다시 할당
+                        exist = false;
+                    }
                 }
-                else {
+                else
+                {
                     break; // 아이템이 인벤토리에 없으니까 다음 단계로 넘어간다.
                 }
             } while (true); // 인벤토리에 없는 아이템 먹을때까지 반복
 
-            if (exist == false)
+            int count = 0; // 자꾸 두번씩 실행되서 일단 추가
+            if (exist == false && count ==0) // 없는 아이템은 추가
             {
+                Debug.Log("이거 한번에 한번만 실행되야함");
                 for (int k = 0; k < 3; k++)
                 {
                     if (Inventory[k] == null) // 리스트가 비어있으면
@@ -153,57 +203,59 @@ public class Item : MonoBehaviour
                         Inventory[k] = items[random]; // 추가
                         Debug.Log(Inventory[k] + "를 추가합니다.");
                         Inven();
+                        count++;
                         break;
-                    }
+                    } // else는 리스트 꽉 차있는경우 그냥 넘어가면 그만임.
                 }
             }
         }
         coll.gameObject.GetComponent<Collider2D>().enabled = false; // 아이템은 한번만 먹을 수 있게 충돌처리가 안되게끔 아에 꺼버림
     }
-
-
     void Inven()
     { // 인벤토리창
-
-        //  ColorBlock chColor1 = b1.GetComponent<Button>().colors;
-        // ColorBlock chColor2 = b2.GetComponent<Button>().colors;
-        // ColorBlock chColor3 = b3.GetComponent<Button>().colors;
-        Debug.Log(b1); Debug.Log(b2);
-
-        Debug.Log(b1.colors);
-        Debug.Log(b2.colors);
-
-        ColorBlock chColor1 = b1.colors;
-        ColorBlock chColor2 = b2.colors;
-        ColorBlock chColor3 = b3.colors;
-        Debug.Log(chColor1);
-        Debug.Log(chColor2);
-
-        // 버튼 활성화 상태에서 색 바꾸고싶은데 도저히 안되네
-
+        Debug.Log("Inventory[0]"+Inventory[0]);
+        Debug.Log("Inventory[1]" + Inventory[1]);
+        Debug.Log("Inventory[2]" + Inventory[2]);
+        
         for (int k = 0; k < 3; k++)
         {
             if (Inventory[k] == "OneBlockDetector") // 한 블록 탐지기 먹었을시
             {
                 OBD = true;
+                UIManager.OBD = OBD;
                 chColor1.normalColor = Color.red;
+                b1.GetComponent<Button>().colors = chColor1; // 이걸 다시 집어넣어줘야 색이 바뀜
+
                 Debug.Log("고물탐지기를 획득." + OBD);
             }
             else if (Inventory[k] == "EightBlockDetector") {
                 EBD = true;
+                UIManager.EBD = EBD;
                 chColor2.normalColor = Color.red;
+                b2.GetComponent<Button>().colors = chColor2;
+
                 Debug.Log("탐지기를 획득." + EBD);
             }
             else if (Inventory[k] == "Knight")
             {
-                chColor3.normalColor = Color.red;
                 K = true;
+                UIManager.K = K;
+                chColor3.normalColor = Color.red;
+                b3.GetComponent<Button>().colors = chColor3;
+
                 Debug.Log("나이트를 획득." + K);
             }
             else if (Inventory[k] == "RandomTeleport")
             {
                 R = true;
                 Debug.Log("함정에 빠졌습니다. 무작위 위치로 이동합니다." + R);
+                RTScript(); // 인벤토리에 추가 되는 순간부터 바로 적용시킨다.
+            }
+            else if (Inventory[k] == "GGwang")
+            {
+                G = true;
+                Debug.Log("꽝이다 ! " + G);
+                GScript(); // 인벤토리에 추가 되는 순간부터 바로 적용시킨다.
             }
         }
     }
@@ -433,6 +485,7 @@ public class Item : MonoBehaviour
          */
     public IEnumerator OBDScript()
     {
+        
         Inven(); // 버튼을 누르면 인벤토리를 불러와서 값을 확인한다.
         Debug.Log(OBD + "사용가능");
         if (OBD == true) // 아이템을 먹은 경우에만 실행해야됨
@@ -441,10 +494,12 @@ public class Item : MonoBehaviour
             OBD_MakeBlock(); // 타일 까는 작업
             StartCoroutine(OBD_MouseClick()); // 타일 깔았으니 이제 타일을 마우스 클릭해야됨
             yield return StartCoroutine(OBD_MouseClick()); // 마우스 클릭할때까지 코드 진행 멈춤
+            StopCoroutine(OBD_MouseClick()); // 사용 후 중지 시키기
 
             Debug.Log("고물탐지기 사용완료1" + OBD);
             OBD = false; // 다시 아이템을 없는 상태로 만들고
-            useItem++; // 아이템 사용 횟수 +1
+            UIManager.OBD = false;
+            usedItem++; // 아이템 사용 횟수 +1
             for (int k = 0; k < 3; k++) // 인벤토리 전체 검사해서 해당 아이템이 위치했던 배열을 null로 초기화
             {
                 if (Inventory[k] == "OneBlockDetector") // 한 블록 탐지기 제거
@@ -455,6 +510,8 @@ public class Item : MonoBehaviour
             }
 
             yield return null;
+            chColor1.normalColor = Color.white;
+            b1.GetComponent<Button>().colors = chColor1; // 이걸 다시 집어넣어줘야 색이 바뀜
 
             test.enabled = true; // 다시 true값 넣어줘야 무브포인트가 작동을함
             StartCoroutine(test.CoMove()); //무브포인트 코루틴 시작
@@ -479,8 +536,7 @@ public class Item : MonoBehaviour
         // 무브포인트의 위치 = 타일 생성하는 곳임
         int n=10;
         for (int i = 1; i < 3; i++) // 12
-        {
-            for (int j = 1; j < 6; j++) // 12345
+        { for (int j = 1; j < 6; j++) // 12345
             {
                 if (i == 1 && (j == 1 ||j == 3 || j == 5)) {
                     continue;
@@ -489,13 +545,12 @@ public class Item : MonoBehaviour
                     continue;
                 }
 
-                int countL1 = 0; int countL2 = 0;
+                int countL1 = 0;
 
                 Kposition = new Vector2(playerPoint.position.x + n * (i - 3), playerPoint.position.y + n * (j - 3));
                 // -20, -10또는10 / -10, -20또는20
-                ReKposition = new Vector2(playerPoint.position.x - n * (i - 3), playerPoint.position.y - n * (j - 3));
                 Vector2 over = new Vector2(script.gridWorldSize.x * 5, script.gridWorldSize.y * 5); // 맵 사이즈 저장
-
+         
                 for (int x = 0; x < mapsize; x++)
                 { // 무브 포인트와 등대가 부딪히면 예외카운트 + 이말은 생성 안한다는 말임
                     for (int y = 0; y < mapsize; y++)
@@ -507,134 +562,83 @@ public class Item : MonoBehaviour
                                 countL1++;
                                 Debug.Log("누락1");
                             }
-                        }else if (script.grid[x, y].worldPosition == ReKposition) // 무브포인트와 일치할때
+                        }
+                    }
+                }
+                Debug.Log("Kposition" + Kposition);
+
+                if (countL1 == 0)
+                {
+                    if (Kposition.x > over.x || Kposition.x < -over.x || Kposition.y > over.y || Kposition.y < -over.y)
+                    {
+                        Debug.Log("왜 안생기는지 확인해보자" + Kposition);
+                        continue; // 맵 벗어나면 만들지 않는다.
+                    }
+                    else // 여기까지 왔으면 맵 안이라는 소리임
+                    {
+                        newKnightPoint[c] = Instantiate(KnightPoint); // 생성
+                        newKnightPoint[c].transform.position = new Vector3(Kposition.x, Kposition.y);
+                        Debug.Log("생기는건 뭐냐" + Kposition);
+
+                        c++;
+                    }
+                }
+            }
+        }
+
+        for (int i = 1; i < 3; i++) // 12
+        {
+            for (int j = 1; j < 6; j++) // 12345
+            {
+                if (i == 1 && (j == 1 || j == 3 || j == 5))
+                {
+                    continue;
+                }
+                if (i == 2 && (j == 2 || j == 3 || j == 4))
+                {
+                    continue;
+                }
+
+                int countL2 = 0;
+                // -20, -10또는10 / -10, -20또는20
+                ReKposition = new Vector2(playerPoint.position.x - n * (i - 3), playerPoint.position.y - n * (j - 3));
+                Vector2 over = new Vector2(script.gridWorldSize.x * 5, script.gridWorldSize.y * 5); // 맵 사이즈 저장
+
+                for (int x = 0; x < mapsize; x++)
+                { // 무브 포인트와 등대가 부딪히면 예외카운트 + 이말은 생성 안한다는 말임
+                    for (int y = 0; y < mapsize; y++)
+                    {
+                        if (script.grid[x, y].worldPosition == ReKposition) // 무브포인트와 일치할때
                         {
                             if (script.grid[x, y].is_lighthouse == true) // 해당 위치가 등대일때 생성안함
                             {
                                 countL2++;
                                 Debug.Log("누락2");
+
                             }
                         }
                     }
                 }
-                Debug.Log("ReKposition"+ReKposition);
-                Debug.Log("Kposition" + Kposition);
-
-                if (countL1 == 0)
+                Debug.Log("ReKposition" + ReKposition);
+                
+                if (countL2 == 0)
                 {
-                    if (Kposition.x >= 0 && Kposition.y >= 0) // 1사분면
-                    {
-                        if (Kposition.x > over.x || Kposition.y > over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newKnightPoint[c] = Instantiate(KnightPoint); // 생성
-                            newKnightPoint[c].transform.position = new Vector3(Kposition.x, Kposition.y);
-                            c++;
-                        }
-                    }
-                    else if (Kposition.x >= 0 && Kposition.y <= 0) // 4사분면
-                    {
-                        if (Kposition.x > over.x || Kposition.y < -over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newKnightPoint[c] = Instantiate(KnightPoint); // 생성
-                            newKnightPoint[c].transform.position = new Vector3(Kposition.x, Kposition.y);
-                            c++;
-                        }
-                    }
-                    else if (Kposition.x <= 0 && Kposition.y >= 0) // 2사분면
-                    {
-                        if (Kposition.x < -over.x || Kposition.y > over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newKnightPoint[c] = Instantiate(KnightPoint); // 생성
-                            newKnightPoint[c].transform.position = new Vector3(Kposition.x, Kposition.y);
-                            c++;
-                        }
-                    }
-                    else if (Kposition.x <= 0 && Kposition.y <= 0) //3사분면
-                    {
-                        if (Kposition.x < -over.x || Kposition.y < -over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newKnightPoint[c] = Instantiate(KnightPoint); // 생성
-                            newKnightPoint[c].transform.position = new Vector3(Kposition.x, Kposition.y);
-                            c++;
-                        }
-                    }
-                }
 
-                if (countL2 == 0) {
+                    if (ReKposition.x > over.x || ReKposition.x < -over.x || ReKposition.y > over.y || ReKposition.y < -over.y)
+                    {
+                        Debug.Log("왜 안생기는지 확인해보자" + ReKposition);
 
-                    if (ReKposition.x >= 0 && ReKposition.y >= 0) // 1사분면
-                    {
-                        if (ReKposition.x > over.x || ReKposition.y > over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newKnightPoint[c] = Instantiate(KnightPoint); // 생성
-                            newKnightPoint[c].transform.position = new Vector3(ReKposition.x, ReKposition.y);
-                            c++;
-                        }
+                        continue; // 맵 벗어나면 만들지 않는다.
                     }
-                    else if (ReKposition.x >= 0 && ReKposition.y <= 0) // 4사분면
+                    else // 여기까지 왔으면 맵 안이라는 소리임
                     {
-                        if (ReKposition.x > over.x || ReKposition.y < -over.y)
-                        {
-                            Debug.Log("아마 여기서 누락");
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newKnightPoint[c] = Instantiate(KnightPoint); // 생성
-                            newKnightPoint[c].transform.position = new Vector3(ReKposition.x, ReKposition.y);
-                            c++;
-                        }
-                    }
-                    else if (ReKposition.x <= 0 && ReKposition.y >= 0) // 2사분면
-                    {
-                        if (ReKposition.x < -over.x || ReKposition.y > over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newKnightPoint[c] = Instantiate(KnightPoint); // 생성
-                            newKnightPoint[c].transform.position = new Vector3(ReKposition.x, ReKposition.y);
-                            c++;
-                        }
-                    }
-                    else if (ReKposition.x <= 0 && ReKposition.y <= 0) //3사분면
-                    {
-                        if (ReKposition.x < -over.x || ReKposition.y < -over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newKnightPoint[c] = Instantiate(KnightPoint); // 생성
-                            newKnightPoint[c].transform.position = new Vector3(ReKposition.x, ReKposition.y);
-                            c++;
-                        }
-                        // 홀수맵에서는 좌표가 0일 수가 있음;; x,y가 하나이상 0인 경우임
+                        newKnightPoint[c] = Instantiate(KnightPoint); // 생성
+                        newKnightPoint[c].transform.position = new Vector3(ReKposition.x, ReKposition.y);
+                        Debug.Log("생기는건 뭐냐" + ReKposition);
+                        c++;
                     }
                 }
             }
-
         }
     }
 
@@ -721,15 +725,6 @@ public class Item : MonoBehaviour
             yield return null; // while문이 돌기전에 여기서 잠시 대기를 하기때문에 먹통이 안되는듯함. 대기시간은 update랑 비슷하다고 봤었음
         }
     }
-
-
-
-
-
-
-
-
-
     public void EBScript()
     {
         int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
@@ -754,8 +749,10 @@ public class Item : MonoBehaviour
                         }
                     }
                 }
-            EBD = false; // 다시 아이템을 없는 상태로 만들고
-            useItem++; // 아이템 사용 횟수 +1
+            EBD = false; // 다시 아이템을 없는 상태로 만들고          
+            UIManager.EBD = false;
+
+            usedItem++; // 아이템 사용 횟수 +1
             for (int k = 0; k < 3; k++) // 인벤토리 전체 검사해서 해당 아이템이 위치했던 배열을 null로 초기화
             {
                 if (Inventory[k] == "EightBlockDetector") // 여덟 블록 탐지기 제거
@@ -764,11 +761,14 @@ public class Item : MonoBehaviour
                     Debug.Log("탐지기 사용완료2" + EBD);
                 }
             }
+
+            chColor2.normalColor = Color.white;
+            b2.GetComponent<Button>().colors = chColor2; // 이걸 다시 집어넣어줘야 색이 바뀜
+
         }
     }
     public IEnumerator KnightScript()
     {
-
         Inven(); // 버튼을 누르면 인벤토리를 불러와서 값을 확인한다.
         Debug.Log(K + "사용가능");
         if (K == true) // 아이템을 먹은 경우에만 실행해야됨
@@ -778,10 +778,11 @@ public class Item : MonoBehaviour
             K_MakeBlock(); // 타일 까는 작업
             StartCoroutine(K_MouseClick()); // 타일 깔았으니 이제 타일을 마우스 클릭해야됨
             yield return StartCoroutine(K_MouseClick()); // 마우스 클릭할때까지 코드 진행 멈춤
-
+            StopCoroutine(K_MouseClick()); // 사용 후 중지 시키기
             Debug.Log("나이트 사용완료1" + K);
             K = false; // 다시 아이템을 없는 상태로 만들고
-            useItem++; // 아이템 사용 횟수 +1
+            UIManager.K = false;
+            usedItem++; // 아이템 사용 횟수 +1
             for (int k = 0; k < 3; k++) // 인벤토리 전체 검사해서 해당 아이템이 위치했던 배열을 null로 초기화
             {
                 if (Inventory[k] == "Knight") // 나이트 제거
@@ -792,6 +793,8 @@ public class Item : MonoBehaviour
             }
 
             yield return null;
+            chColor3.normalColor = Color.white;
+            b3.GetComponent<Button>().colors = chColor3; // 이걸 다시 집어넣어줘야 색이 바뀜
 
             test.enabled = true; // 다시 true값 넣어줘야 무브포인트가 작동을함
             StartCoroutine(test.CoMove()); //무브포인트 코루틴 시작
@@ -799,11 +802,63 @@ public class Item : MonoBehaviour
         
 
     }
-    void RTScript()
+    void RTScript() // 랜덤 텔레포트
     {
+        int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
+        int i = 0;
         if (R == true)
         {
+            for (int z = 0; z < 9; z++)
+            {
+                DestroyObject(test.newMovePoint[z]); // 기존 위치 제거
+            }
+            do {
+                int x = Random.Range(0, mapsize - 1);
+                int y = Random.Range(0, mapsize - 1);
+                if ((script.grid[x, y].is_lighthouse == false))  //등대가 아닌 위치에
+                {
+                    int valid = 1;
+                    if (((x == 0) && (y == 0)) || ((x == mapsize - 1) && (y == mapsize - 1)))
+                        valid = 0; // 아무리 랜덤이라도 시작과 끝은 예외
+
+                    if (valid == 1)
+                    {
+                        playerPoint.transform.position = new Vector3(script.grid[x, y].worldPosition.x, script.grid[x, y].worldPosition.y);
+                        i++;
+                    }
+                }
+            } while (i==0);
+            test.movePoint(); // 새 위치 할당
+            
             // 플레이어 위치 랜덤으로 (맵 범위 안에서 감시탑이 아니고 시작과 도착 위치가 아닌 위치로 이동)
+            R = false; // 다시 아이템을 없는 상태로 만들고
+            usedItem++; // 아이템 사용 횟수 +1
+            for (int k = 0; k < 3; k++) // 인벤토리 전체 검사해서 해당 아이템이 위치했던 배열을 null로 초기화
+            {
+                if (Inventory[k] == "RandomTeleport") // 나이트 제거
+                {
+                    Inventory[k] = null; // 배열 초기화
+                }
+            }
+
+        }
+
+    }
+
+    void GScript() // 꽝 아이템
+    {
+        if (G == true)
+        {
+            // 플레이어 위치 랜덤으로 (맵 범위 안에서 감시탑이 아니고 시작과 도착 위치가 아닌 위치로 이동)
+            G = false; // 다시 아이템을 없는 상태로 만들고
+            for (int k = 0; k < 3; k++) // 인벤토리 전체 검사해서 해당 아이템이 위치했던 배열을 null로 초기화
+            {
+                if (Inventory[k] == "GGwang") // 나이트 제거
+                {
+                    Inventory[k] = null; // 배열 초기화
+                }
+            }
+
         }
 
     }

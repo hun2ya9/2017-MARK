@@ -7,13 +7,15 @@ public class UIManager : MonoBehaviour
 {
     public static int level;
     public static int stage = 1; //첫 스테이지는 1번
+    public static bool OBD, EBD, K; // 스테이지 넘어가도 아이템 유지 되도록
+
     public void Menu()
     {
         SceneManager.LoadScene("Opening UI");
     }
     public void play()
     {
-        SceneManager.LoadScene("Game Explane UI");
+        SceneManager.LoadScene("Game Explain UI");
     }
 
     public void Difficulty()
@@ -58,6 +60,9 @@ public class UIManager : MonoBehaviour
     }
     public void NextStage()
     {
+
+
+        StageResult.countx = 0; // 다른 스테이지 간에는 출력해야되므로
         if (UIManager.level == 1)
         {
             level = 1;
@@ -72,9 +77,10 @@ public class UIManager : MonoBehaviour
         }
 
         stage++; // 다음단계 넘어갈땐 stage값 증가
-
         if (UIManager.stage == 5)
         {
+
+
             SceneManager.LoadScene("Total Result UI");
         }
         else

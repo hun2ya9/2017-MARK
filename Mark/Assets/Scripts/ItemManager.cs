@@ -9,6 +9,10 @@ public class ItemManager : MonoBehaviour
     public void OBDUse()
     {
         StartCoroutine(i.OBDScript());
+        
+        StopCoroutine(i.OBDScript());
+
+
     }
 
     public void EBDUse()
@@ -18,6 +22,8 @@ public class ItemManager : MonoBehaviour
     public void KUse()
     {
         StartCoroutine(i.KnightScript());
+        StopCoroutine(i.KnightScript());
+
     }
     // Use this for initialization
     void Start()
