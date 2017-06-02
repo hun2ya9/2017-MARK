@@ -42,7 +42,7 @@ public class Item : MonoBehaviour
     public static int usedItem; // 아이템 사용 횟수
 
 
-     Button b1, b2, b3; // 버튼
+    Button b1, b2, b3; // 버튼
     ColorBlock chColor1;
     ColorBlock chColor2;
     ColorBlock chColor3;
@@ -77,7 +77,7 @@ public class Item : MonoBehaviour
             Inventory[2] = "Knight"; Inven();
 
         }
-        
+
     }
     void Start()
     {
@@ -95,41 +95,31 @@ public class Item : MonoBehaviour
     public void MakeItem() {
         script = object_manager.GetComponent<ObjectManager_>();
         h = g.GetComponent<Hole>();
-
-        Vector3 itemPosition;
-
         int i = 0, x = 0, y = 0;
         int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
         int house_cnt = (mapsize / 2) + 1;   //맵 한 줄의 길이/2==설치할 아이템의 수 
-
+        for (int b = 0; b < house_cnt; b++){
+            script.grid[x, y].is_lighthouse = true;
+        }
         do
         {
             x = Random.Range(0, mapsize - 1);
             y = Random.Range(0, mapsize - 1);
-
-            for (int k = 0; k < mapsize; k++)
-            {
-                for (int g = 0; g < mapsize; g++)
-                {
-                    itemPosition = new Vector2(-(script.gridWorldSize.x * 5) + 5 + 10 * x, (script.gridWorldSize.y * 5) - 5 - 10 * y);
-                    if (itemPosition == script.grid[k, g].worldPosition) // 랜덤위치와 첫번째부터(0,0)~(끝,끝) 위치 비교한다.
+            
+                    if ((script.grid[x, y].is_trap == false) && (script.grid[x, y].is_lighthouse == false) && (script.grid[x, y].is_Item == false))  //트랩 또는 등대 또는 아이템이 이미 설치되있냐
                     {
-                        if ((script.grid[k, g].is_trap == false) && (script.grid[k, g].is_lighthouse == false))  //트랩 또는 등대가 이미 설치되있냐
-                        {
-                            int valid = 1;  //등대를 설치해도되는 위치냐
-                                            //nqueen problem으로 해보기!!!그러나 똑같은 배치만 나올 수도 있다, 리커젼 풀리는 순서가 같기때문
-                            if (((x == 0) && (y == 0)) || ((x == mapsize - 1) && (y == mapsize - 1)))
-                                valid = 0;
+                        int valid = 1;  //등대를 설치해도되는 위치냐
+                                        //nqueen problem으로 해보기!!!그러나 똑같은 배치만 나올 수도 있다, 리커젼 풀리는 순서가 같기때문
+                        if (((x == 0) && (y == 0)) || ((x == mapsize - 1) && (y == mapsize - 1)))
+                            valid = 0;
 
-                            if (valid == 1)
-                            {
-                                Transform newhouse = Instantiate(item);
-                                newhouse.position = new Vector3(script.grid[k, g].worldPosition.x, script.grid[k, g].worldPosition.y);
-                                i++;
-                            }
+                        if (valid == 1)
+                        {
+                            Transform newhouse = Instantiate(item);
+                            newhouse.position = new Vector3(script.grid[x, y].worldPosition.x, script.grid[x, y].worldPosition.y);
+                            script.grid[x, y].is_Item = true;
+                            i++;
                         }
-                    }
-                }
             }
         } while (i != house_cnt);
     }
@@ -149,11 +139,13 @@ public class Item : MonoBehaviour
         items[3] = "RandomTeleport"; // 랜덤으로 아무대나 보냄
         items[4] = "GGwang"; // 꽝!
     }
-
+    static int count;
     void OnTriggerEnter2D(Collider2D coll) // player가 item에 부딪힐때
     {
+        count = 0;
         bool exist = false; // 인벤토리에 먹은 아이템 있는지확인 = 기본값 없는걸로(false)
         int random;
+
         if (coll.gameObject.tag == "Item") // 부딪힌게 아이템 일때
         {
 
@@ -191,8 +183,7 @@ public class Item : MonoBehaviour
                     break; // 아이템이 인벤토리에 없으니까 다음 단계로 넘어간다.
                 }
             } while (true); // 인벤토리에 없는 아이템 먹을때까지 반복
-
-            int count = 0; // 자꾸 두번씩 실행되서 일단 추가
+            
             if (exist == false && count ==0) // 없는 아이템은 추가
             {
                 Debug.Log("이거 한번에 한번만 실행되야함");
@@ -249,7 +240,10 @@ public class Item : MonoBehaviour
             {
                 R = true;
                 Debug.Log("함정에 빠졌습니다. 무작위 위치로 이동합니다." + R);
-                RTScript(); // 인벤토리에 추가 되는 순간부터 바로 적용시킨다.
+                StartCoroutine(RTScript());
+                //RTScript(); // 인벤토리에 추가 되는 순간부터 바로 적용시킨다.
+                StopCoroutine(RTScript());
+
             }
             else if (Inventory[k] == "GGwang")
             {
@@ -302,71 +296,28 @@ public class Item : MonoBehaviour
                         }
                     }
                 }
-
                 if (countL == 0)
                 {
-                    if (MPpoisition.x >= 0 && MPpoisition.y >= 0) // 1사분면
+                    if (MPpoisition.x > over.x || MPpoisition.x < -over.x || MPpoisition.y > over.y || MPpoisition.y < -over.y)
                     {
-                        if (MPpoisition.x > over.x || MPpoisition.y > over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newOneBlockPoint[i * 3 - j] = Instantiate(OneBlockPoint); // 생성
-                            newOneBlockPoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-
-                        }
+                        continue; // 맵 벗어나면 만들지 않는다.
                     }
-                    else if (MPpoisition.x >= 0 && MPpoisition.y <= 0) // 4사분면
+                    else // 여기까지 왔으면 맵 안이라는 소리임
                     {
-                        if (MPpoisition.x > over.x || MPpoisition.y < -over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newOneBlockPoint[i * 3 - j] = Instantiate(OneBlockPoint); // 생성
+                        newOneBlockPoint[i * 3 - j] = Instantiate(OneBlockPoint); // 생성
                             newOneBlockPoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-
-                        }
-
-                    }
-                    else if (MPpoisition.x <= 0 && MPpoisition.y >= 0) // 2사분면
-                    {
-                        if (MPpoisition.x < -over.x || MPpoisition.y > over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newOneBlockPoint[i * 3 - j] = Instantiate(OneBlockPoint); // 생성
-                            newOneBlockPoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-                        }
-
-                    }
-                    else if (MPpoisition.x <= 0 && MPpoisition.y <= 0) //3사분면
-                    {
-                        if (MPpoisition.x < -over.x || MPpoisition.y < -over.y)
-                        {
-                            continue; // 맵 벗어나면 만들지 않는다.
-                        }
-                        else // 여기까지 왔으면 맵 안이라는 소리임
-                        {
-                            newOneBlockPoint[i * 3 - j] = Instantiate(OneBlockPoint); // 생성
-                            newOneBlockPoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
-                        }
+                        
                     }
                 }
             }
         }
     }
 
-    int c = 0; // 한번만 반복 = 클릭 한번만 하면 됨
+    static int c; // 한번만 반복 = 클릭 한번만 하면 됨
     public IEnumerator OBD_MouseClick() // 고물 탐지기 타일만 클릭 가능하고 클릭시 해당위치에 구멍이 있다면 구멍 보이게해줌 
     { // 원리는 MovePoint 깔고나서 클릭하는거랑 똑같음 RayCast쏴서 해당 위치의 Layer가 OneBlockDetector이면 위치 반환
         int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
-
+        c = 0;
         while (c == 0) // 클릭 할때까지 무한반복해야됨
         {
             if (Input.GetMouseButtonDown(0))
@@ -383,60 +334,21 @@ public class Item : MonoBehaviour
                 else if (hit.collider.gameObject.layer == LayerMask.NameToLayer("OneBlockDetector")) // OneBlockDetector에서만 이동가능
                 {// 클릭시 해당 블록의 구멍이 있다면 z축 +2로 보여야함.. 근데 클릭한 좌표가.
 
-                    Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                    Debug.Log(pos + "좌표");
-                    /*범위 안에 들어왔을때 임의의 좌표(이거랑 구멍이랑 비교할거임)가 좌표가 칸의 중심으로 이동하게끔 하는거임
-                     모든 오브젝트가 칸의 중심이 기준이라서 그렇게 해야 서로 비교가 되니까*/
-
-                    Vector3 a = new Vector3(playerPoint.position.x - pos.x, playerPoint.position.y - pos.y); // a에 위치 저장
-
-                    if ((a.x > -15 && a.x < -5) && (a.y > -15 && a.y < -5))
-                    { // 우상
-                        ViewOneBlockPoint.position = new Vector2(playerPoint.position.x + 10, playerPoint.position.y + 10);
-                    }
-                    else if ((a.x > -15 && a.x < -5) && (a.y > 5 && a.y < 15))
-                    { // 우하
-                        ViewOneBlockPoint.position = new Vector2(playerPoint.position.x + 10, playerPoint.position.y - 10);
-
-                    }
-                    else if ((a.x > -15 && a.x < -5) && (a.y > -5 && a.y < 5))
-                    { // 우
-                        ViewOneBlockPoint.position = new Vector2(playerPoint.position.x + 10, playerPoint.position.y);
-                    }
-                    else if ((a.x > -5 && a.x < 5) && (a.y > -15 && a.y < -5))
-                    { // 위
-                        ViewOneBlockPoint.position = new Vector2(playerPoint.position.x, playerPoint.position.y + 10);
-                    }
-                    else if ((a.x > -5 && a.x < 5) && (a.y > 5 && a.y < 15))
-                    {// 아래
-                        ViewOneBlockPoint.position = new Vector2(playerPoint.position.x, playerPoint.position.y - 10);
-                    }
-                    else if ((a.x > 5 && a.x < 15) && (a.y > -15 && a.y < -5))
-                    { // 좌상 
-                        ViewOneBlockPoint.position = new Vector2(playerPoint.position.x - 10, playerPoint.position.y + 10);
-                    }
-                    else if ((a.x > 5 && a.x < 15) && (a.y > -5 && a.y < 5))
-                    { // 왼
-                        ViewOneBlockPoint.position = new Vector2(playerPoint.position.x - 10, playerPoint.position.y);
-                    }
-                    else if ((a.x > 5 && a.x < 15) && (a.y > 5 && a.y < 15))
-                    { //좌하
-                        ViewOneBlockPoint.position = new Vector2(playerPoint.position.x - 10, playerPoint.position.y - 10);
-                    }
+                    ViewOneBlockPoint.position = new Vector2(hit.collider.gameObject.transform.position.x, hit.collider.gameObject.transform.position.y);
+                    // 히트된 물체의 위치로 이동하는거임
 
                     for (int i = 0; i < 9; i++)
                     {
                         DestroyObject(newOneBlockPoint[i]); // 기존 타일 위치 제거
                     }
-
-
-                    Debug.Log("4단계");
+                    
                     for (int i = 0; i < mapsize; i++) // 마우스 클릭한 블록에 구멍이 있을때 구멍 위치 -1로 해서 보이게함
                     {
                         if (h.holes[i].transform.position.x == ViewOneBlockPoint.position.x && h.holes[i].transform.position.y == ViewOneBlockPoint.position.y)
                         {
                             Transform ht1 = h.holes[i].GetComponent<Transform>();
                             ht1.transform.position = new Vector3(h.holes[i].transform.position.x, h.holes[i].transform.position.y, -1);
+                            DestroyObject(ViewOneBlockPoint);
                         }
                     }
                     c++; // 카운트 하나 올라가면서 반복문을 빠져나오게된다.
@@ -485,11 +397,14 @@ public class Item : MonoBehaviour
          */
     public IEnumerator OBDScript()
     {
-        
+        GameObject.Find("Item_Button1").GetComponent<Button>().enabled = false;
         Inven(); // 버튼을 누르면 인벤토리를 불러와서 값을 확인한다.
         Debug.Log(OBD + "사용가능");
         if (OBD == true) // 아이템을 먹은 경우에만 실행해야됨
         {
+            //자꾸 버그생겨서 아이템 사용간에는 그냥 버튼 비활성화로 만들고 싶은데 방법이 없을랑가
+
+
             test.enabled = false; // 무브 포인트를 중단시킨다. StopCoroutine 해도 되었을듯??
             OBD_MakeBlock(); // 타일 까는 작업
             StartCoroutine(OBD_MouseClick()); // 타일 깔았으니 이제 타일을 마우스 클릭해야됨
@@ -515,6 +430,8 @@ public class Item : MonoBehaviour
 
             test.enabled = true; // 다시 true값 넣어줘야 무브포인트가 작동을함
             StartCoroutine(test.CoMove()); //무브포인트 코루틴 시작
+            GameObject.Find("Item_Button1").GetComponent<Button>().enabled = true;
+
         }
     }
 
@@ -644,11 +561,10 @@ public class Item : MonoBehaviour
 
 
 
-    int c1 = 0; // 한번만 반복 = 클릭 한번만 하면 됨
+    static int c1;// 한번만 반복 = 클릭 한번만 하면 됨
     public IEnumerator K_MouseClick() // 고물 탐지기 타일만 클릭 가능하고 클릭시 해당위치에 구멍이 있다면 구멍 보이게해줌 
     { // 원리는 MovePoint 깔고나서 클릭하는거랑 똑같음 RayCast쏴서 해당 위치의 Layer가 OneBlockDetector이면 위치 반환
-        int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
-
+        c1 = 0;
         while (c1 == 0) // 클릭 할때까지 무한반복해야됨
         {
             if (Input.GetMouseButtonDown(0))
@@ -664,48 +580,8 @@ public class Item : MonoBehaviour
                 }
                 else if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Knight"))
                 {
-
-                    Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                    Debug.Log(pos + "좌표");
-                    /*범위 안에 들어왔을때 임의의 좌표(이거랑 구멍이랑 비교할거임)가 좌표가 칸의 중심으로 이동하게끔 하는거임
-                     모든 오브젝트가 칸의 중심이 기준이라서 그렇게 해야 서로 비교가 되니까*/
-
-                    Vector3 a = new Vector3(playerPoint.position.x - pos.x, playerPoint.position.y - pos.y); // a에 위치 저장
-                    Debug.Log(a);
-                    if ((a.x > -25 && a.x < -15) && (a.y > -15 && a.y < -5))
-                    { // 우상
-                        playerPoint.transform.position = new Vector2(playerPoint.position.x + 20, playerPoint.position.y + 10);
-                    }
-                    else if ((a.x > -25 && a.x < -15) && (a.y > 5 && a.y < 15))
-                    { // 우하
-                        playerPoint.transform.position = new Vector2(playerPoint.position.x + 20, playerPoint.position.y - 10);
-
-                    }
-                    else if ((a.x > -15 && a.x < -5) && (a.y > -25 && a.y < -15))
-                    { // 우
-                        playerPoint.transform.position = new Vector2(playerPoint.position.x + 10, playerPoint.position.y +20);
-                    }
-                    else if ((a.x > -15 && a.x < -5) && (a.y > 15 && a.y < 25))
-                    { // 위
-                        playerPoint.transform.position = new Vector2(playerPoint.position.x +10, playerPoint.position.y - 20);
-                    }
-                    else if ((a.x > 15 && a.x < 25) && (a.y > 5 && a.y < 15))
-                    {// 아래
-                        playerPoint.transform.position = new Vector2(playerPoint.position.x -20, playerPoint.position.y - 10);
-                    }
-                    else if ((a.x > 15 && a.x < 25) && (a.y > -15 && a.y < -5))
-                    { // 좌상 
-                        playerPoint.transform.position = new Vector2(playerPoint.position.x - 20, playerPoint.position.y + 10);
-                    }
-                    else if ((a.x > 5 && a.x < 15) && (a.y > 15 && a.y < 25))
-                    { // 왼
-                        playerPoint.transform.position = new Vector2(playerPoint.position.x - 10, playerPoint.position.y -20);
-                    }
-                    else if ((a.x > 5 && a.x < 15) && (a.y > -25 && a.y < -15))
-                    { //좌하
-                       playerPoint.transform.position = new Vector2(playerPoint.position.x - 10, playerPoint.position.y + 20);
-                    }
-
+                    playerPoint.transform.position = new Vector2(hit.collider.gameObject.transform.position.x, hit.collider.gameObject.transform.position.y);
+                    
                     for (int i = 0; i < 9; i++)
                     {
                         DestroyObject(newKnightPoint[i]); // 기존 타일 위치 제거
@@ -717,8 +593,6 @@ public class Item : MonoBehaviour
                     }
                     test.movePoint(); // 새 위치 할당
                 
-
-
                 c1++; // 카운트 하나 올라가면서 반복문을 빠져나오게된다.
                 }
             }
@@ -727,6 +601,7 @@ public class Item : MonoBehaviour
     }
     public void EBScript()
     {
+        GameObject.Find("Item_Button2").GetComponent<Button>().enabled = false;
         int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
         script = object_manager.GetComponent<ObjectManager_>();
 
@@ -764,15 +639,19 @@ public class Item : MonoBehaviour
 
             chColor2.normalColor = Color.white;
             b2.GetComponent<Button>().colors = chColor2; // 이걸 다시 집어넣어줘야 색이 바뀜
+            GameObject.Find("Item_Button2").GetComponent<Button>().enabled = true;
 
         }
     }
     public IEnumerator KnightScript()
     {
+        GameObject.Find("Item_Button3").GetComponent<Button>().enabled = false;
+
         Inven(); // 버튼을 누르면 인벤토리를 불러와서 값을 확인한다.
         Debug.Log(K + "사용가능");
         if (K == true) // 아이템을 먹은 경우에만 실행해야됨
         {
+
               test.enabled = false; // 무브 포인트를 중단시킨다. StopCoroutine 해도 되었을듯??
 
             K_MakeBlock(); // 타일 까는 작업
@@ -798,21 +677,23 @@ public class Item : MonoBehaviour
 
             test.enabled = true; // 다시 true값 넣어줘야 무브포인트가 작동을함
             StartCoroutine(test.CoMove()); //무브포인트 코루틴 시작
+            GameObject.Find("Item_Button3").GetComponent<Button>().enabled = true;
+
         }
-        
+
 
     }
-    void RTScript() // 랜덤 텔레포트
+    IEnumerator RTScript() // 랜덤 텔레포트
     {
+        // 버그 발생 : 이동중에 충돌 발생하면 강제로 위치 이동한 상태에서 나머지 이동을 실행함
         int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
         int i = 0;
         if (R == true)
         {
-            for (int z = 0; z < 9; z++)
+            yield return new WaitForSeconds(1); // 1초 기다렸다가 위치 이동 => 버그 막기 위함
+
+            do
             {
-                DestroyObject(test.newMovePoint[z]); // 기존 위치 제거
-            }
-            do {
                 int x = Random.Range(0, mapsize - 1);
                 int y = Random.Range(0, mapsize - 1);
                 if ((script.grid[x, y].is_lighthouse == false))  //등대가 아닌 위치에
@@ -821,13 +702,19 @@ public class Item : MonoBehaviour
                     if (((x == 0) && (y == 0)) || ((x == mapsize - 1) && (y == mapsize - 1)))
                         valid = 0; // 아무리 랜덤이라도 시작과 끝은 예외
 
-                    if (valid == 1)
+                    if (valid == 1) // 다른 곳으로 이동함
                     {
+                        Debug.Log("언제 이동되는가?" + Time.time);
                         playerPoint.transform.position = new Vector3(script.grid[x, y].worldPosition.x, script.grid[x, y].worldPosition.y);
                         i++;
                     }
                 }
             } while (i==0);
+            for (int z = 0; z < 9; z++)
+            {
+                DestroyObject(test.newMovePoint[z]); // 기존 위치 제거
+                Debug.Log("언제 삭제되는가?" + Time.time);
+            }
             test.movePoint(); // 새 위치 할당
             
             // 플레이어 위치 랜덤으로 (맵 범위 안에서 감시탑이 아니고 시작과 도착 위치가 아닌 위치로 이동)

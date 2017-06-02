@@ -6,12 +6,13 @@ public class ItemManager : MonoBehaviour
 {
     Item i;
 
+    // 버튼 연속으로 눌러버리면 오류남 - 버튼 누름과 동시에 버튼 비활성화로 만들 방법이 없을까?
+
     public void OBDUse()
     {
         StartCoroutine(i.OBDScript());
         
         StopCoroutine(i.OBDScript());
-
 
     }
 

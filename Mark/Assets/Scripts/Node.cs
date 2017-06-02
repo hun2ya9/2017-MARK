@@ -6,6 +6,9 @@ public class Node
     public Vector3 worldPosition; // 현재 노드의 좌표
     public bool is_trap = false;
     public bool is_lighthouse = false;
+    public bool is_Item = false;
+    public bool is_flag = false;
+
     // public Node parent
 
 

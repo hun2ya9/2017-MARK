@@ -10,17 +10,19 @@ public class Player : MonoBehaviour
     public int maxLife = 3;
     public int life = 3; // 라이프 3개
     bool gameOver = false;
-    List<Vector3> h = new List<Vector3>(); //구멍 위치가 담긴 리스트
+   // List<Vector3> h = new List<Vector3>(); //구멍 위치가 담긴 리스트
 
 
     public LayerMask LightHouse;
     bool Lpoint;
     public GameObject Trace; // 지나온 길
+    public GameObject[] TracePoint = new GameObject[200]; // 지나온길 담을거임
+    public static int t = 0; // 지나온 길 배열수
     public GameObject MovePointer;
     public Transform playerPoint; // 플레이어 위치
     public GameObject[] newMovePoint = new GameObject[9];
     Vector3 MPpoisition; // 무브포인트의 위치
-    Text PlayerRoundHoles;
+    Text PlayerRoundHoles; // 플레이어 중심 8방위 구멍 수
     public LayerMask layerMask;
     public GameObject g;
     Hole f;
@@ -30,9 +32,20 @@ public class Player : MonoBehaviour
     GameObject lifeObj1;
     GameObject lifeObj2;
     GameObject lifeObj3;
-    // Use this for initialization
+
+    /* getT()에 대한 설명
+     우연히 만들어진 블록 프리팹이 안지워지는 경우가 발생하는걸 발견했다.
+     알고보니 지나온길을 MovePoint 배열에 같이 넣어서 그랬다.
+     MovePoint 배열은 계속 썻다 지웠다 반복하는데 값이 유지되어야 하는 지나온 길을 거기다 같이 써놨으니 당연히 오류가 날법도 했다.
+     따라서 지나온 길을 TracePoint 배열에다가 따로 저장해놓고 static 정수 값 t를 만들때마다 1씩 더해서 그다음 배열에 저장하는 식으로 해버렸다.
+     분명 더 좋은 방법이 있을건데 ...*/
+    public int getT() { //  다른 클래스에서 static변수값을 끌어다 쓰는 메소드
+        return t-1; // t-1인 이유는 지나온길 만들면서 t++ 하기 때문이다. (flag 에서 지워야 하는 값은 t++값이 아니고 t값이다.)
+    }
+
     void Start()
     {
+        //startTime = Time.time;
         life = maxLife;
         script = object_manager.GetComponent<ObjectManager_>();
         
@@ -45,14 +58,14 @@ public class Player : MonoBehaviour
         lifeObj1 = GameObject.Find("Life1"); // life 오브젝트
         lifeObj2 = GameObject.Find("Life2");
         lifeObj3 = GameObject.Find("Life3");
-
-
-
+        
     }
 
     // Update is called once per frame
     void Update()
     {
+       // distCoverd = (Time.time - startTime) * 1f; //이새끼 값을 고정으로 가질 수 없을까? 매 프레임마다 초기화 되뿌니까이게
+       // fracJourney = distCoverd / journyLength;
         if (life == 0)
         {
             if (!gameOver)
@@ -67,12 +80,7 @@ public class Player : MonoBehaviour
         gameOver = true;
         SceneManager.LoadScene("Game Over UI'");
     }
-    void RestartStage()
-    {
-        // 이부분은 게임 매니저와 연결해서 점수 시간 보여주고 매뉴로 빠지도록해야됨
-    }
-
-
+    
     void end()
     {
         int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
@@ -122,8 +130,10 @@ public class Player : MonoBehaviour
     {
         while (this.enabled == true) // 아이템 사용시에는 무브포인트가 잠시 비활성화 되야해서 이렇게했음
         {
-            move();
-            yield return null;
+            //move();
+            StartCoroutine(move());
+           yield return StartCoroutine(move());
+            StopCoroutine(move());
         }
     }
 
@@ -148,10 +158,15 @@ public class Player : MonoBehaviour
                 MPpoisition = new Vector2(playerPoint.position.x + n * (i - 2), playerPoint.position.y + n * (j - 2)); // -1, 0, 1
                 Vector2 over = new Vector2(script.gridWorldSize.x * 5, script.gridWorldSize.y * 5); // 맵 사이즈 저장
 
+                /* 어이없는 부분에서 실수가 있었다.
+                 * 매번 MovePoint 배열에 새로 위치가 할당되고 지워지고 반복하는데 왜 지나온 길을 MovePoint 배열에 같이 썻지??
+                 * 해결책 : TracePoint라는 새로운 오브젝트 배열에 집어넣었다. 어차피 나중에 점수 계산에 끌어다 쓰면 될듯.
+                 */
                 if (i == 2 && j == 2)
                 { // 자기자신의 위치에는 지나온길 표시
-                    newMovePoint[i * 3 - j] = Instantiate(Trace); // 생성
-                    newMovePoint[i * 3 - j].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
+                    TracePoint[t] = Instantiate(Trace); // 생성
+                    TracePoint[t].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
+                    t++; // 한 스테이지 안에서 유지되는 값 지나온 길 개수은 아무리 많이 만들어도 맵 크기 넘게는 못만듬
                 }
 
 
@@ -194,14 +209,33 @@ public class Player : MonoBehaviour
         }
     }
 
+    /* 매끄럽게 움직이는 방법 설계
+     한프레임 :  0.015초~0.018초 평균 0.016정도 인데 고정값이 아니라서 변동이 심하다. => 0.2로 고정
+     Lerp 는 a에서 b까지 가는에 t시간 걸렸을때의 위치다.
 
+     출발지 a : 플레이어 위치
+     도착지 b : 레이케스트에 히트된 물체의 위치
+     시간 t : 시/거리 = 0.5f/Vector2.Distance(playerPoint.position, HitPos)
+     단위 거리당 걸리는 시간  예를들어 0.5초 / 50m 이면 1% 당 0.01초걸린다~ 이런소리 => 목적지까지 1초 걸리면 도착
 
-    void move() // 최초 무브포인트 생성 => 클릭해서 좌표 저장 => 레이케스트 => 새 좌표로 이동 => 무브포인트 제거 => 바뀐 좌표에 대한 무브포인트 생성
+      여기서는  0.2f/Vector2.Distance(playerPoint.position, HitPos) : 목적지 까지 가는데 직선이든 대각선이든
+      단위 거리당 0.2초로 나눔 : 직선은 10 만큼의 거리인데 1% 당 0.02 초 걸림 => 목적지 까지 가려면 1초를 만들어야됨
+      yield return null 은 한 프레임 쉰다는 뜻
+      50회 반복하면
+      0.02 초 동안 단위거리 이동
+      한 프레임 쉬고
+      0.02 초 동안 단위거리 이동
+      한 프레임 쉬고
+      1초가 되었을때 도착지점까지 이동완료
+      
+
+     한 움직임을 50등분해서 1프레임당 10%씩 움직이면 10프레임 시 목적지 도착할 것이다.
+     move 메소드 안에서 마우스 클릭시 플레이어 위치를 10번을 반복시킨다.*/
+
+    IEnumerator move() // 최초 무브포인트 생성 => 클릭해서 좌표 저장 => 레이케스트 => 새 좌표로 이동 => 무브포인트 제거 => 바뀐 좌표에 대한 무브포인트 생성
     {
         if (Input.GetMouseButtonDown(0))
-        { // 클릭시 좌표 저장
-          /*position을 화면 공간에서 월드 공간으로 변경시킵니다.
-  */
+        { // 클릭시 좌표 저장 position을 화면 공간에서 월드 공간으로 변경시킵니다.
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition); //메인 카메라에서 마우스 위치(클릭한곳)로 광선발사 
             RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity, layerMask);
             if (hit == false)
@@ -210,65 +244,27 @@ public class Player : MonoBehaviour
             }
             else if (hit.collider.gameObject.layer == LayerMask.NameToLayer("MovePoint")) // 무브포인터에서만 이동가능
             {
-                Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);// 마우스 찍은 위치 좌표로 저장
-                /*범위 안에 들어왔을때 해당 칸의 중심으로 이동하게끔
-                오른쪽 : -15 < x < -5 , -5 < y < 5 v
-                왼쪽   :  5 < x < 15 , -5 < y < 5
-                위     : -5 < x < 5, -15 < y < -5         
-                아래   : -5 < x < 5, 5 < y < 15        
-                대각선 
-                우하   : -15 < x < -5 , 5 < y < 15 v
-                좌하   :  5 < x < 15  , 5 < y < 15
-                우상   : -15 < x < -5 , -15 < y < -5 v
-                좌상   : 5 < x < 15 , -15 < y < -5
-                 * 
-                 */
-                Vector3 a = new Vector3(playerPoint.position.x - pos.x, playerPoint.position.y - pos.y); // a에 위치 저장
 
-                if ((a.x > -15 && a.x < -5) && (a.y > -15 && a.y < -5))
-                { // 우상
-                    playerPoint.position = new Vector2(playerPoint.position.x + 10, playerPoint.position.y + 10);
-                }
-                else if ((a.x > -15 && a.x < -5) && (a.y > 5 && a.y < 15))
-                { // 우하
-                    playerPoint.position = new Vector2(playerPoint.position.x + 10, playerPoint.position.y - 10);
-                }
-                else if ((a.x > -15 && a.x < -5) && (a.y > -5 && a.y < 5))
-                { // 우
-                    playerPoint.position = new Vector2(playerPoint.position.x + 10, playerPoint.position.y);
-                }
-                else if ((a.x > -5 && a.x < 5) && (a.y > -15 && a.y < -5))
-                { // 위
-                    playerPoint.position = new Vector2(playerPoint.position.x, playerPoint.position.y + 10);
-                }
-                else if ((a.x > -5 && a.x < 5) && (a.y > 5 && a.y < 15))
-                {// 아래
-                    playerPoint.position = new Vector2(playerPoint.position.x, playerPoint.position.y - 10);
-                }
-                else if ((a.x > 5 && a.x < 15) && (a.y > -15 && a.y < -5))
-                { // 좌상 
-                    playerPoint.position = new Vector2(playerPoint.position.x - 10, playerPoint.position.y + 10);
-                }
-                else if ((a.x > 5 && a.x < 15) && (a.y > -5 && a.y < 5))
-                { // 왼
-                    playerPoint.position = new Vector2(playerPoint.position.x - 10, playerPoint.position.y);
-                }
-                else if ((a.x > 5 && a.x < 15) && (a.y > 5 && a.y < 15))
-                { //좌하
-                    playerPoint.position = new Vector2(playerPoint.position.x - 10, playerPoint.position.y - 10);
-                }
+                /* 플레이어 위치에 히트된 물체의 위치를 대입해서 그쪽으로 이동하도록 간단하게 바꿨다.
+                 * 하지만 한단계 더 나아가서 미끄러지듯이 스르륵 움직이도록 한번 해봅시다. */
+                //Vector2 velocity = Vector2.one;
+                //Vector2 sd = Vector2.SmoothDamp(playerPoint.position, hit.collider.gameObject.transform.position, ref velocity, 0.005f, Mathf.Infinity, Time.deltaTime);
 
+                //playerPoint.position = new Vector2(hit.collider.gameObject.transform.position.x, hit.collider.gameObject.transform.position.y);
+                Vector3 HitPos = hit.collider.gameObject.transform.position;
+                for (int z = 0; z < 50; z++)
+                {
+                 playerPoint.position = Vector2.Lerp(playerPoint.position, HitPos, 0.2f/Vector2.Distance(playerPoint.position, HitPos));
+                    yield return null; // 한프레임 정지
+
+                }
                 for (int i = 0; i < 9; i++)
                 {
-                    DestroyObject(newMovePoint[i]); // 기존 위치 제거
-                }
+                        DestroyObject(newMovePoint[i]);
+                    }
 
                 movePoint(); // 새 위치 할당
             }
         }
-
     }
 }
-
-
-         
