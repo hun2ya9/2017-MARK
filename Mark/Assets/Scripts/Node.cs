@@ -8,13 +8,17 @@ public class Node
     public bool is_lighthouse = false;
     public bool is_Item = false;
     public bool is_flag = false;
-
+    public int X, Y;
+    public int bfs_visit = 0;
+    public int bfs_distance = 0;
     // public Node parent
 
 
-    public Node(Vector3 worldPosition)
+    public Node(Vector3 worldPosition, int i, int j)
     {
         this.worldPosition = worldPosition;
+        this.X = i;
+        this.Y = j;
     }
 
     // Use this for initialization

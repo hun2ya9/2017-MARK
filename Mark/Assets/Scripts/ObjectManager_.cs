@@ -10,6 +10,9 @@ public class ObjectManager_ : MonoBehaviour
     public Vector2 gridWorldSize;
     public Node[,] grid;
     public bool exist_root = false;
+    public int mapsizex, mapsizey;
+
+    public static int g;
 
     public void input_your_level()   //level을 입력받으면 초기화
     {
@@ -42,11 +45,32 @@ public class ObjectManager_ : MonoBehaviour
         // 최상위 슈퍼클래스 GM 를 만들고 거기다 사용할 변수 함수 다 적어넣어야겠네..
 
 
+        mapsizex = Mathf.RoundToInt(gridWorldSize.x);
+        mapsizey = Mathf.RoundToInt(gridWorldSize.y);
     }
     
+public int getBFS_v()
+{
+    return grid[mapsizex - 1, mapsizey - 1].bfs_distance;
+}
+    
+public void print_distance()
+{
+    for (int i = 0; i < Mathf.RoundToInt(gridWorldSize.x); i++)
+    {
+        for (int j = 0; j < Mathf.RoundToInt(gridWorldSize.y); j++)
+        {
+            print(grid[i, j].bfs_distance + " ");
+        }
+        print("\n");
+    }
+        g = grid[mapsizex - 1, mapsizey - 1].bfs_distance;
+    }
 
     void Awake()
     {
+        GameObject.FindGameObjectWithTag("OpenBGM").GetComponent<AudioSource>().mute = true;
+        GameObject.Find("InGameBGM").GetComponent<AudioSource>().mute = false;
         //input_your_level();
         mapsize();
     }

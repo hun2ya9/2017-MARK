@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 
 
 public class Grid : MonoBehaviour
@@ -29,7 +28,7 @@ public class Grid : MonoBehaviour
             {
                 // 현재 노드의 좌표 ((맵에서 좌상 =0,0) - 0,5 )
                 Vector2 worldPosition = new Vector2(-(gridSizeX / 2) + 5 + 10 * j, (gridSizeY / 2) - 5 - 10 * i);
-                script.grid[i, j] = new Node(worldPosition);
+                script.grid[i, j] = new Node(worldPosition, i, j);
 
                 Transform newBlock = Instantiate(block);
                 newBlock.position = new Vector3(script.grid[i, j].worldPosition.x, script.grid[i, j].worldPosition.y);

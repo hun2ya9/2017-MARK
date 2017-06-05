@@ -9,15 +9,22 @@ public class StageResult : MonoBehaviour {
     string Difficulty;
     static int UsedItem; // 한번 값 쓰고나면 매번 0으로 초기화시킴
     static int tt;
+    public static int s_Score1; // 1점수
+    public static int s_Score2; // 2점수
+    public static int s_Score3; // 3점수
+    public static int s_Score4; // 4점수
+    public static int s_Score; // 점수
 
     public static int Total_UsedItem; // 초기화 없이 계속 값 저장
     public static int Total_tt;
-
+    public static int Total_score;
     public static int countx = 0; // 스크립트 1번만 실행하기위함
+    
     void Start()
     {
             tt = 0;
             UsedItem = 0; // 일단 초기화 시킨다음에
+
             D = GameObject.FindGameObjectWithTag("Difficulty").GetComponent<Text>();
             T = GameObject.FindGameObjectWithTag("Time").GetComponent<Text>();
             U = GameObject.FindGameObjectWithTag("UsedItem").GetComponent<Text>();
@@ -44,6 +51,7 @@ public class StageResult : MonoBehaviour {
         {
             Total_UsedItem += UsedItem; // 누적 아이템수
             Total_tt += tt;
+            Total_score += s_Score;
             countx++;
         }
         float minute = Mathf.FloorToInt(tt / 60);
@@ -58,11 +66,45 @@ public class StageResult : MonoBehaviour {
             {
                 T.text = "플레이 시간 : " + minute + "분" + ResetSecond + "초";
             }
+            s_Score = ObjectManager_.g - Player.t;
 
-
-            D.text = "난이도 :" + Difficulty;
-            U.text = "사용 아이템 수 : " + UsedItem;
+        if (s_Score >= 0)
+        {
+            s_Score = 100;
         }
+        else // 최단경로 수 보다 많이 걸린 경우 = 점수 차감
+        {
+            s_Score = 100 + (s_Score * 10);
+
+            if (s_Score < 0){ // 0점 밑으론 다 0점
+                s_Score = 0;
+            }
+        }
+
+        if (UIManager.stage == 1)
+        {
+            s_Score1 = StageResult.s_Score;
+        }
+        else if (UIManager.stage == 2)
+        {
+            s_Score2 = StageResult.s_Score;
+        }
+        else if (UIManager.stage == 3)
+        {
+            s_Score3 = StageResult.s_Score;
+        }
+        else if (UIManager.stage == 4)
+        {
+            s_Score4 = StageResult.s_Score;
+        }
+
+
+        D.text = "난이도 :" + Difficulty;
+            U.text = "사용 아이템 수 : " + UsedItem;
+            S.text = "점수 : " + s_Score;
+
+        //매 스테이지 마다 점수를 넘겨주고
+            }
     
     // Update is called once per frame
     void Update()

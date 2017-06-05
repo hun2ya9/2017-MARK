@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scene/Difficulty Choice UI.unity
+- path: Assets/Scripts/wogod/Title Page.unity
   isLoaded: 1
   isActive: 1

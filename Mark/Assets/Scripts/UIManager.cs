@@ -11,6 +11,8 @@ public class UIManager : MonoBehaviour
 
     public void Menu()
     {
+        GameObject.FindGameObjectWithTag("OpenBGM").GetComponent<AudioSource>().mute = false;
+        GameObject.Find("InGameBGM").GetComponent<AudioSource>().mute = true;
         /*매뉴로 돌아간다는 말은
          게임 시작 전 / 시작 후로 나뉘는데
          시작 후에는 죽은 경우, 클리어시 2가지 종류가 있다.
@@ -25,12 +27,8 @@ public class UIManager : MonoBehaviour
         K = false;
         StageResult.Total_tt = 0;
         StageResult.Total_UsedItem = 0;
-
+        Player.t = 0; // 지나온 길 초기화
         SceneManager.LoadScene("Opening UI");
-    }
-    public void play()
-    {
-        SceneManager.LoadScene("Game Explain UI");
     }
 
     public void Difficulty()
@@ -54,6 +52,22 @@ public class UIManager : MonoBehaviour
     public void ExitSure() {
         Application.Quit();
     }
+    public void Opening()
+    {
+        SceneManager.LoadScene("Opening UI");
+    }
+    public void Explain_UI()
+    {
+        SceneManager.LoadScene("Game Explain UI 1");
+    }
+    public void Explain_Item()
+    {
+        SceneManager.LoadScene("Game Explane - Item");
+    }
+    public void Explain_Ect()
+    {
+        SceneManager.LoadScene("Game Explain - Ect");
+    }
 
     public void Easy()
     {
@@ -75,8 +89,7 @@ public class UIManager : MonoBehaviour
     }
     public void NextStage()
     {
-
-
+        Player.t = 0; // 지나온 길 초기화
         StageResult.countx = 0; // 다른 스테이지 간에는 출력해야되므로
         if (UIManager.level == 1)
         {
@@ -113,6 +126,7 @@ public class UIManager : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        Screen.SetResolution(1024, 768, true); //해상도 설정
 
     }
 

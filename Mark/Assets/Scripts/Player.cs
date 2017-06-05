@@ -10,14 +10,12 @@ public class Player : MonoBehaviour
     public int maxLife = 3;
     public int life = 3; // 라이프 3개
     bool gameOver = false;
-   // List<Vector3> h = new List<Vector3>(); //구멍 위치가 담긴 리스트
-
 
     public LayerMask LightHouse;
     bool Lpoint;
     public GameObject Trace; // 지나온 길
     public GameObject[] TracePoint = new GameObject[200]; // 지나온길 담을거임
-    public static int t = 0; // 지나온 길 배열수
+    public static int t = 0; // 지나온 길 배열수 -> 이걸 또 따로 값을 저장하면 그게 점수내는데 쓰일거임
     public GameObject MovePointer;
     public Transform playerPoint; // 플레이어 위치
     public GameObject[] newMovePoint = new GameObject[9];
@@ -33,8 +31,10 @@ public class Player : MonoBehaviour
     GameObject lifeObj2;
     GameObject lifeObj3;
 
+    static int q = 0;
+
     /* getT()에 대한 설명
-     우연히 만들어진 블록 프리팹이 안지워지는 경우가 발생하는걸 발견했다.
+     만들어진 블록 프리팹이 안지워지는 경우가 발생하는걸 발견했다.
      알고보니 지나온길을 MovePoint 배열에 같이 넣어서 그랬다.
      MovePoint 배열은 계속 썻다 지웠다 반복하는데 값이 유지되어야 하는 지나온 길을 거기다 같이 써놨으니 당연히 오류가 날법도 했다.
      따라서 지나온 길을 TracePoint 배열에다가 따로 저장해놓고 static 정수 값 t를 만들때마다 1씩 더해서 그다음 배열에 저장하는 식으로 해버렸다.
@@ -42,13 +42,29 @@ public class Player : MonoBehaviour
     public int getT() { //  다른 클래스에서 static변수값을 끌어다 쓰는 메소드
         return t-1; // t-1인 이유는 지나온길 만들면서 t++ 하기 때문이다. (flag 에서 지워야 하는 값은 t++값이 아니고 t값이다.)
     }
-
+    BFS script_bfs;
+    
     void Start()
     {
+
         //startTime = Time.time;
         life = maxLife;
         script = object_manager.GetComponent<ObjectManager_>();
-        
+
+        script_bfs = GameObject.Find("Player").GetComponent<BFS>();
+
+        if (script_bfs.is_root_interface() == 1)
+            Debug.Log("exist");
+        else
+            Debug.Log("No_exist");
+        print(script.getBFS_v());
+        script.print_distance();
+        //startTime = Time.time;
+        life = maxLife;
+
+
+
+
         PlayerRoundHoles = GameObject.FindGameObjectWithTag("PlayerRoundHoles").GetComponent<Text>(); // 우측 상단 플레이어 중심 구멍수 택스트
 
         playerPoint.position = new Vector2(-(script.gridWorldSize.x * 5) + 5, (script.gridWorldSize.y * 5) - 5); // 플레이어 시작 위치 지정
@@ -58,14 +74,29 @@ public class Player : MonoBehaviour
         lifeObj1 = GameObject.Find("Life1"); // life 오브젝트
         lifeObj2 = GameObject.Find("Life2");
         lifeObj3 = GameObject.Find("Life3");
-        
+
+
+        int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
+    
     }
 
     // Update is called once per frame
     void Update()
     {
-       // distCoverd = (Time.time - startTime) * 1f; //이새끼 값을 고정으로 가질 수 없을까? 매 프레임마다 초기화 되뿌니까이게
-       // fracJourney = distCoverd / journyLength;
+
+        script = object_manager.GetComponent<ObjectManager_>();
+        int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
+
+        for (int i = 0; i < mapsize; i++) // 마우스 클릭한 블록에 구멍이 있을때 구멍 위치 -1로 해서 보이게함
+        {
+            if (f.holes[i].transform.position.x == playerPoint.position.x && f.holes[i].transform.position.y == playerPoint.position.y)
+            {
+                Transform ht1 = f.holes[i].GetComponent<Transform>();
+                ht1.transform.position = new Vector3(f.holes[i].transform.position.x, f.holes[i].transform.position.y, -1);
+                //Debug.Log(ht1.transform.position);
+            }
+        }
+
         if (life == 0)
         {
             if (!gameOver)
@@ -93,9 +124,6 @@ public class Player : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D Player)
     {
-        script = object_manager.GetComponent<ObjectManager_>();
-        int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
-
         if (Player.gameObject.tag == "Hole")
         {
             life -= 1; // 라이프 까짐
@@ -111,17 +139,6 @@ public class Player : MonoBehaviour
             {
                 lifeObj1.SetActive(false);
             }
-
-            for (int i = 0; i < mapsize; i++) // 마우스 클릭한 블록에 구멍이 있을때 구멍 위치 -1로 해서 보이게함
-            {
-                if (f.holes[i].transform.position.x == playerPoint.position.x && f.holes[i].transform.position.y == playerPoint.position.y)
-                {
-                    Transform ht1 = f.holes[i].GetComponent<Transform>();
-                    ht1.transform.position = new Vector3(f.holes[i].transform.position.x, f.holes[i].transform.position.y, -1);
-                }
-            }
-
-        Debug.Log(life);
         }
     }
 
@@ -130,9 +147,9 @@ public class Player : MonoBehaviour
     {
         while (this.enabled == true) // 아이템 사용시에는 무브포인트가 잠시 비활성화 되야해서 이렇게했음
         {
-            //move();
             StartCoroutine(move());
            yield return StartCoroutine(move());
+            q = 0;
             StopCoroutine(move());
         }
     }
@@ -162,12 +179,16 @@ public class Player : MonoBehaviour
                  * 매번 MovePoint 배열에 새로 위치가 할당되고 지워지고 반복하는데 왜 지나온 길을 MovePoint 배열에 같이 썻지??
                  * 해결책 : TracePoint라는 새로운 오브젝트 배열에 집어넣었다. 어차피 나중에 점수 계산에 끌어다 쓰면 될듯.
                  */
-                if (i == 2 && j == 2)
+                if (i == 2 && j == 2 && q==0)
                 { // 자기자신의 위치에는 지나온길 표시
                     TracePoint[t] = Instantiate(Trace); // 생성
                     TracePoint[t].transform.position = new Vector3(MPpoisition.x, MPpoisition.y);
                     t++; // 한 스테이지 안에서 유지되는 값 지나온 길 개수은 아무리 많이 만들어도 맵 크기 넘게는 못만듬
+                    q++;
+                    Debug.Log("지나온 길 : " + t);
                 }
+                   
+                
 
 
                 for (int x = 0; x < mapsize; x++)
@@ -262,7 +283,6 @@ public class Player : MonoBehaviour
                 {
                         DestroyObject(newMovePoint[i]);
                     }
-
                 movePoint(); // 새 위치 할당
             }
         }

@@ -21,6 +21,8 @@ public class GameOverResult : MonoBehaviour
     public static int countx = 0; // 스크립트 1번만 실행하기위함
     void Start()
     {
+        GameObject.Find("InGameBGM").GetComponent<AudioSource>().mute = true;
+
         GameOver_D = GameObject.FindGameObjectWithTag("GameOver_Difficulty").GetComponent<Text>();
         GameOver_T = GameObject.FindGameObjectWithTag("GameOver_Time").GetComponent<Text>();
         GameOver_U = GameObject.FindGameObjectWithTag("GameOver_UsedItem").GetComponent<Text>();

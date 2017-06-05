@@ -94,13 +94,12 @@ public class Item : MonoBehaviour
 
     public void MakeItem() {
         script = object_manager.GetComponent<ObjectManager_>();
+
         h = g.GetComponent<Hole>();
         int i = 0, x = 0, y = 0;
         int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
         int house_cnt = (mapsize / 2) + 1;   //맵 한 줄의 길이/2==설치할 아이템의 수 
-        for (int b = 0; b < house_cnt; b++){
-            script.grid[x, y].is_lighthouse = true;
-        }
+
         do
         {
             x = Random.Range(0, mapsize - 1);
@@ -122,6 +121,7 @@ public class Item : MonoBehaviour
                         }
             }
         } while (i != house_cnt);
+
     }
 
 
@@ -348,7 +348,8 @@ public class Item : MonoBehaviour
                         {
                             Transform ht1 = h.holes[i].GetComponent<Transform>();
                             ht1.transform.position = new Vector3(h.holes[i].transform.position.x, h.holes[i].transform.position.y, -1);
-                            DestroyObject(ViewOneBlockPoint);
+                            //DestroyObject(ViewOneBlockPoint);
+
                         }
                     }
                     c++; // 카운트 하나 올라가면서 반복문을 빠져나오게된다.
@@ -690,7 +691,8 @@ public class Item : MonoBehaviour
         int i = 0;
         if (R == true)
         {
-            yield return new WaitForSeconds(1); // 1초 기다렸다가 위치 이동 => 버그 막기 위함
+            test.enabled = false; // 무브 포인트를 중단시킨다.
+            yield return new WaitForSeconds(1.5f); // 1.5초 기다렸다가 위치 이동 => 버그 막기 위함
 
             do
             {
@@ -704,7 +706,6 @@ public class Item : MonoBehaviour
 
                     if (valid == 1) // 다른 곳으로 이동함
                     {
-                        Debug.Log("언제 이동되는가?" + Time.time);
                         playerPoint.transform.position = new Vector3(script.grid[x, y].worldPosition.x, script.grid[x, y].worldPosition.y);
                         i++;
                     }
@@ -713,10 +714,10 @@ public class Item : MonoBehaviour
             for (int z = 0; z < 9; z++)
             {
                 DestroyObject(test.newMovePoint[z]); // 기존 위치 제거
-                Debug.Log("언제 삭제되는가?" + Time.time);
             }
             test.movePoint(); // 새 위치 할당
-            
+            test.enabled = true; // 다시 true값 넣어줘야 무브포인트가 작동을함
+            StartCoroutine(test.CoMove()); //무브포인트 코루틴 시작
             // 플레이어 위치 랜덤으로 (맵 범위 안에서 감시탑이 아니고 시작과 도착 위치가 아닌 위치로 이동)
             R = false; // 다시 아이템을 없는 상태로 만들고
             usedItem++; // 아이템 사용 횟수 +1
