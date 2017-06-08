@@ -32,7 +32,6 @@ public class Player : MonoBehaviour
     GameObject lifeObj3;
 
     static int q = 0;
-
     /* getT()에 대한 설명
      만들어진 블록 프리팹이 안지워지는 경우가 발생하는걸 발견했다.
      알고보니 지나온길을 MovePoint 배열에 같이 넣어서 그랬다.
@@ -50,13 +49,13 @@ public class Player : MonoBehaviour
         //startTime = Time.time;
         life = maxLife;
         script = object_manager.GetComponent<ObjectManager_>();
-
         script_bfs = GameObject.Find("Player").GetComponent<BFS>();
 
         if (script_bfs.is_root_interface() == 1)
             Debug.Log("exist");
         else
-            Debug.Log("No_exist");
+            SceneManager.LoadScene("MAP1"); // 신 다시시작
+        Debug.Log("No_exist");
         print(script.getBFS_v());
         script.print_distance();
         //startTime = Time.time;
@@ -79,24 +78,26 @@ public class Player : MonoBehaviour
         int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
     
     }
+    
 
     // Update is called once per frame
     void Update()
     {
-
         script = object_manager.GetComponent<ObjectManager_>();
         int mapsize = Mathf.RoundToInt(script.gridWorldSize.x);
 
-        for (int i = 0; i < mapsize; i++) // 마우스 클릭한 블록에 구멍이 있을때 구멍 위치 -1로 해서 보이게함
+        for (int i = 0; i < mapsize+2; i++) // 마우스 클릭한 블록에 구멍이 있을때 구멍 위치 -1로 해서 보이게함
         {
             if (f.holes[i].transform.position.x == playerPoint.position.x && f.holes[i].transform.position.y == playerPoint.position.y)
             {
                 Transform ht1 = f.holes[i].GetComponent<Transform>();
                 ht1.transform.position = new Vector3(f.holes[i].transform.position.x, f.holes[i].transform.position.y, -1);
-                //Debug.Log(ht1.transform.position);
-            }
-        }
+                f.holes[i].GetComponent<AudioSource>().enabled = true;
 
+            }
+
+        }
+        
         if (life == 0)
         {
             if (!gameOver)

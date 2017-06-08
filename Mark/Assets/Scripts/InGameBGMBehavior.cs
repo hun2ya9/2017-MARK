@@ -16,9 +16,4 @@ public class InGameBGMBehavior : MonoBehaviour {
 
         DontDestroyOnLoad(transform.gameObject);
     }
-
-    void DestoryOpeningBGM()
-    {
-        
-    }
 }

@@ -14,10 +14,11 @@ public class GameOverResult : MonoBehaviour
     string Difficulty;
     static int GameOver_UsedItem;
     static int GameOver_tt; // 누적 값
+    static int GameOver_Score; // 누적 값
 
     int UsedItem;
     int tt; // 스테이지 마다 더할 값
-
+    int s_Score;
     public static int countx = 0; // 스크립트 1번만 실행하기위함
     void Start()
     {
@@ -26,7 +27,7 @@ public class GameOverResult : MonoBehaviour
         GameOver_D = GameObject.FindGameObjectWithTag("GameOver_Difficulty").GetComponent<Text>();
         GameOver_T = GameObject.FindGameObjectWithTag("GameOver_Time").GetComponent<Text>();
         GameOver_U = GameObject.FindGameObjectWithTag("GameOver_UsedItem").GetComponent<Text>();
-        //GameOver_S = GameObject.FindGameObjectWithTag("GameOver_Score").GetComponent<Text>();
+        GameOver_S = GameObject.FindGameObjectWithTag("GameOver_Score").GetComponent<Text>();
 
         if (UIManager.level == 1)
         {
@@ -63,9 +64,12 @@ public class GameOverResult : MonoBehaviour
                 GameOver_T.text = "플레이 시간 : " + minute + "분" + ResetSecond + "초";
             }
             UsedItem = Item.usedItem;
+            
 
             GameOver_D.text = "난이도 :" + Difficulty;
             GameOver_U.text = "사용 아이템 수 : " + UsedItem;
+            GameOver_S.text = "점수 : " + 0;
+
         }
         else // 스테이지 2 이상일때
         {
@@ -85,9 +89,20 @@ public class GameOverResult : MonoBehaviour
             }
             GameOver_D.text = "난이도 :" + Difficulty;
             GameOver_U.text = "사용 아이템 수 : " + UsedItem;
+            if (UIManager.stage == 2) {
+                GameOver_S.text = "점수 : " + StageResult.s_Score1; // 이전 스테이지값 + (현재 스테이지 값 = 중간에 뒤졌으니 무조건 0점)
+            } else if (UIManager.stage == 3) {
+                int r = StageResult.s_Score1 + StageResult.s_Score2;
+                GameOver_S.text = "점수 : " + r; // 이전 스테이지값 + (현재 스테이지 값 = 중간에 뒤졌으니 무조건 0점)
+            }
+            else if (UIManager.stage == 4)
+            {
+                int r = StageResult.s_Score1 + StageResult.s_Score2 + StageResult.s_Score3;
 
+                GameOver_S.text = "점수 : " + r; // 이전 스테이지값 + (현재 스테이지 값 = 중간에 뒤졌으니 무조건 0점)
+            }
         }
-    
+
     }
         // Update is called once per frame
         void Update()

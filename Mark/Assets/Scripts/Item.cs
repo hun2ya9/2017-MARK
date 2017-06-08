@@ -342,7 +342,7 @@ public class Item : MonoBehaviour
                         DestroyObject(newOneBlockPoint[i]); // 기존 타일 위치 제거
                     }
                     
-                    for (int i = 0; i < mapsize; i++) // 마우스 클릭한 블록에 구멍이 있을때 구멍 위치 -1로 해서 보이게함
+                    for (int i = 0; i < mapsize+2; i++) // 마우스 클릭한 블록에 구멍이 있을때 구멍 위치 -1로 해서 보이게함
                     {
                         if (h.holes[i].transform.position.x == ViewOneBlockPoint.position.x && h.holes[i].transform.position.y == ViewOneBlockPoint.position.y)
                         {
@@ -615,7 +615,7 @@ public class Item : MonoBehaviour
                     for (int j = 1; j < 4; j++)
                     {
                         ViewEightBlockPoint = new Vector2(playerPoint.position.x + 10 * (i - 2), playerPoint.position.y + 10 * (j - 2));
-                        for (int z = 0; z < mapsize; z++) // 마우스 클릭한 블록에 구멍이 있을때 구멍 위치 -1로 해서 보이게함
+                        for (int z = 0; z < mapsize+2; z++) // 마우스 클릭한 블록에 구멍이 있을때 구멍 위치 -1로 해서 보이게함
                         {
                             if (h.holes[z].transform.position.x == ViewEightBlockPoint.x && h.holes[z].transform.position.y == ViewEightBlockPoint.y)
                             {

@@ -31,7 +31,7 @@ public class Hole : MonoBehaviour
         int i = 0, x = 0, y = 0;
         int mapsize= Mathf.RoundToInt(script.gridWorldSize.x);
         int hole_cnt = mapsize; //맵 한 줄의 길이==설치할 구멍의 수 
-        holes = new GameObject[mapsize];
+        holes = new GameObject[mapsize+2];
         int h = 0;
         do
         {
@@ -54,7 +54,7 @@ public class Hole : MonoBehaviour
                     i++;
                 }
             }
-        } while (i != hole_cnt);
+        } while (i != hole_cnt+2); // 2개 더 늘림
     }
 
     public void touchedtrap(){

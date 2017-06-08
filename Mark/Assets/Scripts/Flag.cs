@@ -28,10 +28,12 @@ public class Flag : MonoBehaviour
                 for (int i = 0; i < 9; i++)
                 {
                     DestroyObject(test.newMovePoint[i]); // 기존 위치 제거 + 지나온 길도 지워야함
+                }
+                for (int i = 0; i < 2; i++)
+                {
                     DestroyObject(test.TracePoint[Player.t]);
                     if (Player.t != 0) // 시작 지점에서 깃발 꼽을시엔 t=0이라 t-1 = -1 : 오류!!
                         Player.t -= 1; // 1빼줘라.. 안그럼 t값 무한대로 올라간다.
-
                 }
                 /* 이제 확실히 알았다.
                  정적 메소드나 정적 변수는 클래스.메소드 혹은 클래스.변수로 접근이 가능하다...
@@ -75,7 +77,7 @@ public class Flag : MonoBehaviour
                                     {
                                         if (flagPos[z] != null && flagPos[z].transform.position == script.grid[i, j].worldPosition)
                                         {
-                                            DestroyObject(flagPos[z]); //이야 없어지긴 하는데 완전히 없애버리는데ㅋㅋ?
+                                            DestroyObject(flagPos[z]);
                                         }
 
                                     }

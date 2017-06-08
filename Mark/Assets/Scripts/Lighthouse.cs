@@ -49,7 +49,7 @@ public class Lighthouse : MonoBehaviour {
                     i++;
                 }
             }
-        } while (i != house_cnt);
+        } while (i != house_cnt +1);
     }
 
     public void viewlight()   //같은 행과 열에 지뢰가 몇 개 있는지

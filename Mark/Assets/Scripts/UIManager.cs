@@ -30,7 +30,10 @@ public class UIManager : MonoBehaviour
         Player.t = 0; // 지나온 길 초기화
         SceneManager.LoadScene("Opening UI");
     }
-
+    public void Achievement()
+    {
+        SceneManager.LoadScene("Achievement");
+    }
     public void Difficulty()
     {
         SceneManager.LoadScene("Difficulty Choice UI");
